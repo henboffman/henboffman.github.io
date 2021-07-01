@@ -21,7 +21,7 @@
 
             </div>
         </nav> -->
-        <div class="cover-container d-flex h-100 p-3 mx-auto flex-column">
+        <div class="cover-container d-flex h-100 p-4 mx-auto flex-column">
 
             <main role="main" class="inner cover">
                 <!-- <p class="lead">
@@ -36,54 +36,90 @@
                             In this case, <b>Theme</b> is used to communicate high-level ideas that you'd typically find
                             itemized in a mission statement.
                         </p>
-                        <div class="row justify-content-md-center">
+                    </div>
+                </div>
+
+                <div class="container justify-content-md-center">
 
 
-                            <div class="list-group col-sm-11 col-md-11 col-lg-11 col-xs-12 my-2">
-                                <div class="bs-callout bs-callout-primary">
-                                    <h4>Theme</h4>
-                                    <p class="mb-1">An idea that recurs in or pervades a work of art or literature (or
-                                        software)
-                                    </p>
-                                    <small>In this situation, I use <b>Theme</b> as an idea/philosophy experienced
-                                        through human-computer interaction</small>
+                    <div class="list-group col-sm-12 col-md-12 col-lg-12 col-xs-12 my-2">
+                        <div class="bs-callout bs-callout-primary">
+                            <h4>Theme</h4>
+                            <p class="mb-1">An idea that recurs in or pervades a work of art or literature (or
+                                software)
+                            </p>
+                            <small>In this situation, I use <b>Theme</b> as an idea/philosophy experienced
+                                through human-computer interaction</small>
+                        </div>
+
+                        <div class="bs-callout bs-callout-success">
+                            <h4>Epic</h4>
+                            <p class="mb-1">Major contributions which help establish or achieve a theme.
+                            </p>
+                        </div>
+
+                        <div class="bs-callout bs-callout-info">
+                            <h4>Feature</h4>
+                            <p class="mb-1">The individual components or functionality which aid in delivering
+                                epics and realizing themes
+                            </p>
+                        </div>
+
+                    </div>
+
+
+                    <div class="list-group col-xs-12 col-sm-12 col-md-12 col-lg-12  my-2">
+                        <div class="col-12 mb-1" repeat.for="theme of collectionData">
+                            <div class="bs-callout bs-callout-primary mb-1">
+                                <div class="row">
+                                    <div class="col-10">
+                                        <h4>${theme.name}</h4>
+                                    </div>
+                                    <div class="col-2">
+                                        <button class="btn btn-sm btn-outline-info"
+                                            click.trigger="theme.toggleVisibility()">${theme.isVisible? 'Hide' : 'Show'}
+                                            Children</button>
+                                    </div>
                                 </div>
+                                <p class="mb-1">${theme.description}
+                                </p>
+                                <small>
+                                    <span class="badge badge-light" repeat.for="tag of theme.tags">Tag</span>
+                                </small>
+                            </div>
 
-                                <div class="bs-callout bs-callout-success">
-                                    <h4>Epic</h4>
-                                    <p class="mb-1">Major contributions which help establish or achieve a theme.
-                                    </p>
+                            <div class="row justify-content-end" show.bind="theme.isVisible">
+                                <div class="col-xs-11 col-sm-11 col-md-11 col-lg-11  my-0"
+                                    repeat.for="epic of theme.children">
+                                    <div class="bs-callout bs-callout-success ml-3 mt-0 mb-1">
+                                        <h4>${epic.name}</h4>
+                                        <p class="mb-1">${epic.description}
+                                        </p>
+                                        <small>
+                                            <span class="badge badge-light" repeat.for="tag of epic.tags">Tag</span>
+                                        </small>
+                                    </div>
+
+                                    <div class="row justify-content-end">
+                                        <div class="col-xs-11 col-sm-11 col-md-11 col-lg-11 my-0"
+                                            repeat.for="feature of epic.children">
+                                            <div class="bs-callout bs-callout-info mt-0 mb-1">
+                                                <h4>${feature.name}</h4>
+                                                <p class="mb-1">${feature.description}
+                                                </p>
+                                                <small>
+                                                    <span class="badge badge-light"
+                                                        repeat.for="tag of feature.tags">Tag</span>
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-
-                                <div class="bs-callout bs-callout-info">
-                                    <h4>Feature</h4>
-                                    <p class="mb-1">The individual components or functionality which aid in delivering
-                                        epics and realizing themes
-                                    </p>
-                                </div>
-
                             </div>
                         </div>
                     </div>
                 </div>
-
             </main>
-
-
-
-            <!-- <footer class="mastfoot mt-auto">
-                <div class="container">
-                    <div class="inner mt-4">
-                        <div class="row justify-content-end">
-                            <div class="col-1">
-                                <a href="mailto:benbrent@gmail.com"><button
-                                        class="btn btn-outline-info">Email</button></a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </footer> -->
         </div>
     </div>
-
 </template>

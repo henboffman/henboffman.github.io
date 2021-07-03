@@ -1,7 +1,9 @@
 :root {
-  --primary: #F22738;
+  --red: #F22738;
+  --epic: #F26633;
+  --feature: #AF55F2;
   --secondary: #3D6373;
-    --info:  #5DA6A6;
+    --theme:  #5DA6A6;
     --success:#8FBFA4;
     --dark:#1e1e23;
 }
@@ -72,22 +74,22 @@ html, body {
     color: #777;
 }
 .bs-callout-primary {
-    border-left-color: #428bca;
+    border-left-color:var(--theme);
 }
 .bs-callout-primary h4 {
-    color: #428bca;
+    color: var(--theme);
 }
 .bs-callout-success {
-    border-left-color: #5cb85c;
+    border-left-color: var(--epic);
 }
 .bs-callout-success h4 {
-    color: #5cb85c;
+    color: var(--epic);
 }
 .bs-callout-danger {
-    border-left-color: #d9534f;
+    border-left-color: var(--feature);
 }
 .bs-callout-danger h4 {
-    color: #d9534f;
+    color: var(--feature);
 }
 .bs-callout-warning {
     border-left-color: #f0ad4e;
@@ -96,8 +98,8 @@ html, body {
     color: #f0ad4e;
 }
 .bs-callout-info {
-    border-left-color: #5bc0de;
+    border-left-color: var(--feature);
 }
 .bs-callout-info h4 {
-    color: #5bc0de;
+    color: var(--feature);
 }

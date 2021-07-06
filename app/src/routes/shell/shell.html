@@ -71,8 +71,9 @@
                     <div class="list-group col-xs-12 col-sm-12 col-md-12 col-lg-12  my-2">
                         <div class="row mb-1" repeat.for="theme of collectionData">
                             <div class="col-1">
-                                <button class="btn btn-small btn-outline-primary mt-5"
-                                    click.trigger="theme.toggleVisibility()">+</button>
+                                <button class="btn btn-small btn-outline-secondary mt-5"
+                                    click.trigger="theme.toggleVisibility()"><em
+                                        class="fas fa-2x ${theme.isVisible? 'fa-minus': 'fa-plus'}"></em></button>
                             </div>
                             <div class="col-11">
                                 <div class="bs-callout bs-callout-primary mb-1">
@@ -80,11 +81,7 @@
                                         <div class="col-10">
                                             <h4>${theme.name}</h4>
                                         </div>
-                                        <!-- <div class="col-2">
-                                                                                                    <button class="btn btn-sm btn-outline-info"
-                                                                                                        click.trigger="theme.toggleVisibility()">${theme.isVisible? 'Hide' : 'Show'}
-                                                                                                        Children</button>
-                                                                                                </div> -->
+
                                     </div>
                                     <p class="mb-1">${theme.description}
                                     </p>
@@ -98,17 +95,28 @@
                             <div class="row justify-content-end" show.bind="theme.isVisible">
                                 <div class="col-xs-11 col-sm-11 col-md-11 col-lg-11  my-0"
                                     repeat.for="epic of theme.children">
-                                    <div class="bs-callout bs-callout-success ml-3 mt-0 mb-1">
-                                        <h4>${epic.name}</h4>
-                                        <p class="mb-1">${epic.description}
-                                        </p>
-                                        <small>
-                                            <span class="badge badge-light" repeat.for="tag of epic.tags">Tag</span>
-                                        </small>
+                                    <div class="row">
+                                        <div class="col-1">
+                                            <button class="btn btn-small btn-outline-secondary mt-4"
+                                                click.trigger="epic.toggleVisibility()"><em
+                                                    class="fas fa-2x ${epic.isVisible? 'fa-minus': 'fa-plus'}"></em></button>
+                                        </div>
+                                        <div class="col-11">
+                                            <div class="bs-callout bs-callout-success ml-3 mt-0 mb-1">
+                                                <h4>${epic.name}</h4>
+                                                <p class="mb-1">${epic.description}
+                                                </p>
+                                                <small>
+                                                    <span class="badge badge-light"
+                                                        repeat.for="tag of epic.tags">Tag</span>
+                                                </small>
+                                            </div>
+
+                                        </div>
                                     </div>
 
-                                    <div class="row justify-content-end">
-                                        <div class="col-xs-11 col-sm-11 col-md-11 col-lg-11 my-0"
+                                    <div class="row justify-content-end" show.bind="epic.isVisible">
+                                        <div class="col-xs-10 col-sm-10 col-md-10 col-lg-10 my-0 "
                                             repeat.for="feature of epic.children">
                                             <div class="bs-callout bs-callout-info mt-0 mb-1">
                                                 <h4>${feature.name}</h4>

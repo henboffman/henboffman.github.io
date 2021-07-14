@@ -6,7 +6,7 @@ export class Entry {
     public type: Type | null = null;
     public tags: string[] = [];
     public children: Entry[] = [];
-    public isVisible: boolean = true;
+    public isVisible: boolean = false;
 
     constructor(name: string, description: string, type: Type) {
         this.name = name;

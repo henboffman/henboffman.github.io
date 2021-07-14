@@ -1,17 +1,37 @@
-import { autoinject } from 'aurelia-framework';
-import { Entry } from 'common/models/entry';
+import { autoinject, PLATFORM } from 'aurelia-framework';
+import { Router, RouterConfiguration } from "aurelia-router";
 import "bootstrap";
-import { DataService } from './../../common/services/data-service';
+import "bootstrap/dist/js/bootstrap";
+import * as $ from "jquery";
 
 @autoinject
 export class App {
 
-    public collectionData: Entry[] = [];
 
-    constructor(public dataService: DataService) { }
+    constructor(public router: Router) { }
 
-    public activate() {
-        this.collectionData = this.dataService.generateSampleData();
+
+    public configureRouter(config: RouterConfiguration, router: Router) {
+        config.map([{
+            route: ["", "home"],
+            name: "home",
+            settings: { icon: "fas fa-home", external: false },
+            moduleId: PLATFORM.moduleName("../home/home"),
+            nav: true,
+            title: "Home",
+        },
+        {
+            route: ["skate"],
+            name: "skate",
+            settings: { icon: "fas fa-home", external: false },
+            moduleId: PLATFORM.moduleName("../skate/skate"),
+            nav: true,
+            title: "skate",
+        }
+        ]);
+        this.router = router;
+        config.mapUnknownRoutes("not-found");
     }
+
 
 }

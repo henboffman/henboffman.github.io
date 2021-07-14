@@ -1,0 +1,23 @@
+<template>
+    <div class="cover-container d-flex h-100 py-3 px-1 mx-auto flex-column">
+        <div class="jumbotron jumbotron-fluid">
+            <div class="container">
+                <h1 class="display-4">Skate Dice</h1>
+                <p class="lead">Skate dice apps either cost too much or look like they were built forever ago. So here's
+                    my take on it</p>
+                <div class="col">
+                    <button class="btn btn-outline-info btn-lg" style="font-size:3em;" role="button"
+                        click.trigger="generateTrick()">Roll the
+                        Dice
+                        <i class="fas fa-dice"></i></a>
+                    </button>
+                </div>
+                <div class="col mt-3">
+                    <h1>${trickToDisplay.basicFlipTrickDescription}</h1>
+                    <h1>${trickToDisplay.fullTrickDescription}</h1>
+                    <h1>${trickToDisplay.modifiedTrickDescription}</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>

@@ -9,6 +9,7 @@
   "license": "MIT",
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.15.3",
+    "@types/jquery": "^3.5.6",
     "aurelia-animator-css": "^1.0.4",
     "aurelia-bootstrapper": "^2.3.3",
     "bootstrap": "^5.0.2",

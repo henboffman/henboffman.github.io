@@ -5,7 +5,6 @@ import 'bootstrap/dist/css/bootstrap.css'; // Import the CSS
 import "bootstrap/dist/js/bootstrap";
 import "@fortawesome/fontawesome-free";
 import "@fortawesome/fontawesome-free/css/all.css";
-import "jquery";
 import "popper.js";
 import { PLATFORM } from 'aurelia-pal';
 

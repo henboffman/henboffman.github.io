@@ -1,0 +1,120 @@
+<template>
+    <div class="cover-container d-flex h-100 py-3 px-1 mx-auto flex-column">
+
+        <main role="main" class="inner cover">
+
+            <div class="jumbotron jumbotron-fluid">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-9">
+                            <h1 class="display-4">Ben Hoffman</h1>
+                            <p class="lead">Data on this page is organized hierarchically by Theme, Epic, and
+                                Feature</p>
+                            <p>These concepts align to what you'd typically find in backlog management, perhaps with
+                                the exception of <b>Theme</b>. In this case, <b>Theme</b> is used to communicate
+                                high-level ideas that you'd typically find itemized in a mission statement.
+                            </p>
+                            <a href="#skate">Skate-Dice</a>
+                        </div>
+                        <div class="col-3">
+                            <img src="./../../../static/profile.jpg" style="border-radius:50%; max-height:200px;"
+                                class="mt-3 img-fluid float-right" alt="">
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="container justify-content-md-center">
+                <h3 class="mb-0">Definitions </h3>
+                <div class="list-group col-sm-12 col-md-12 col-lg-12 col-xs-12 my-2">
+                    <div class="bs-callout bs-callout-primary">
+                        <h4>Theme</h4>
+                        <p class="mb-1">An idea that recurs in or pervades a work of art or literature (or
+                            software)
+                        </p>
+                        <small>In this situation, I use <b>Theme</b> as an idea/philosophy experienced
+                            through human-computer interaction</small>
+                    </div>
+
+                    <div class="bs-callout bs-callout-success">
+                        <h4>Epic</h4>
+                        <p class="mb-1">Major contributions which help establish or achieve a theme.
+                        </p>
+                    </div>
+
+                    <div class="bs-callout bs-callout-info">
+                        <h4>Feature</h4>
+                        <p class="mb-1">The individual components or functionality which aid in delivering
+                            epics and realizing themes
+                        </p>
+                    </div>
+
+                </div>
+
+                <h3 class="mb-0">Content</h3>
+                <div class="list-group col-xs-12 col-sm-12 col-md-12 col-lg-12  my-2">
+                    <div class="mb-1" repeat.for="theme of collectionData">
+                        <div class="bs-callout bs-callout-primary mb-1">
+                            <div class="row">
+                                <div class="col-xs-2 col-sm-2 col-md-1 col-lg-1">
+                                    <button class="btn btn-small btn-outline-secondary mt-2 ml-2"
+                                        click.trigger="theme.toggleVisibility()"><em
+                                            class="fas ${theme.isVisible? 'fa-minus': 'fa-plus'}"></em></button>
+                                </div>
+                                <div class="col-xs-10 col-sm-10 col-md-11 col-lg-11">
+                                    <h4>${theme.name}</h4>
+                                    <p class="mb-1">${theme.description}
+                                    </p>
+                                </div>
+                            </div>
+                            <small>
+                                <span class="badge badge-light" repeat.for="tag of theme.tags">Tag</span>
+                            </small>
+                        </div>
+
+                        <div class="row justify-content-end" show.bind="theme.isVisible">
+                            <div class="col-xs-12 col-sm-12 col-md-11 col-lg-11  my-0"
+                                repeat.for="epic of theme.children">
+                                <div class="bs-callout bs-callout-success ml-3 mt-0 mb-1">
+                                    <div class="row">
+                                        <div class="col-xs-2 col-sm-2 col-md-1 col-lg-1">
+                                            <button class="btn btn-small btn-outline-secondary mt-2 ml-2"
+                                                click.trigger="epic.toggleVisibility()"><em
+                                                    class="fas ${epic.isVisible? 'fa-minus': 'fa-plus'}"></em></button>
+                                        </div>
+                                        <div class="col-xs-10 col-sm-10 col-md-11 col-lg-11">
+                                            <h4>${epic.name}</h4>
+                                            <p class="mb-1">${epic.description}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <small>
+                                        <span class="badge badge-light" repeat.for="tag of epic.tags">Tag</span>
+                                    </small>
+                                </div>
+                                <div class="row justify-content-end" show.bind="epic.isVisible">
+                                    <div class="col-xs-11 col-sm-11 col-md-11 col-lg-11 my-0 "
+                                        repeat.for="feature of epic.children">
+                                        <div class="bs-callout bs-callout-info mt-0 mb-1">
+                                            <h4>${feature.name}</h4>
+                                            <p class="mb-1">${feature.description}
+                                            </p>
+                                            <small>
+                                                <span class="badge badge-light"
+                                                    repeat.for="tag of feature.tags">Tag</span>
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+</template>

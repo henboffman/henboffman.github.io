@@ -17,9 +17,9 @@ export class TrickService {
     ];
 
     private rotations: WeightedEntry[] = [
-        new WeightedEntry("180", 0.6),
+        new WeightedEntry("180", 0.3),
         new WeightedEntry("360", 0.2),
-        new WeightedEntry("", 0.2)
+        new WeightedEntry("", 0.5)
     ];
 
     private flipTricks: WeightedEntry[] = [

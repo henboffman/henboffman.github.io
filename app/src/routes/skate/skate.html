@@ -13,11 +13,28 @@
                     </button>
                 </div>
                 <div class="col mt-3">
-                    <h1>${trickToDisplay.basicFlipTrickDescription}</h1>
-                    <h1>${trickToDisplay.fullTrickDescription}</h1>
-                    <h1>${trickToDisplay.modifiedTrickDescription}</h1>
+                    <h1><b>Base Trick: </b><span style="font-weight:200;">${trickToDisplay.basicFlipTrickDescription}</span></h1>
+                    <h1><b>With Rotation Modifier: </b><span style="font-weight:200;">${trickToDisplay.fullTrickDescription}</span></h1>
+                    <h1><b>Trick Name: </b><span style="font-weight:200;">${trickToDisplay.modifiedTrickDescription}</span></h1>
                 </div>
             </div>
+        </div>
+        <div class="container mt-5">
+            <h2>Flip Tricks</h2>
+            <table class="table table-dark">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Weight</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr repeat.for="trick of trickService.flipTricks">
+                        <td>${trick.entry}</td>
+                        <td>${trick.weight * 100}%</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 </template>

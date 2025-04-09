@@ -12,7 +12,16 @@
 </head>
 
 <body>
-	<h1>MTG Collection Checker</h1>
+	<div class="header-container">
+		<h1>MTG Collection Checker</h1>
+		<div class="theme-switch-wrapper">
+			<span>Dark Mode</span>
+			<label class="theme-switch">
+				<input type="checkbox" id="darkModeToggle">
+				<span class="slider"></span>
+			</label>
+		</div>
+	</div>
 
 	<div class="tab">
 		<button class="tablinks active" onclick="openTab(event, 'checkTab')">Check Collection</button>
@@ -21,38 +30,44 @@
 
 	<!-- Check Collection Tab -->
 	<div id="checkTab" class="tabcontent active">
-		<div class="container">
-			<div class="column">
-				<h2>Deck List</h2>
-				<div class="deck-list-container">
-					<input type="text" id="deckNameInput"
-						placeholder="Deck Name (will be extracted from first line if available)">
-					<div class="action-row">
-						<button id="saveButton">Save Deck</button>
-						<button id="clearButton" class="secondary-button">Clear</button>
-					</div>
-					<h3>Saved Decks</h3>
-					<div id="savedDecks" class="saved-decks">
-						<!-- Saved decks will be listed here -->
-					</div>
+		<div class="three-column-container">
+			<!-- Column 1: Saved Decks & Collection Upload -->
+			<div class="column narrow-column">
+				<h2>Saved Decks</h2>
+				<div id="savedDecks" class="saved-decks">
+					<!-- Saved decks will be listed here -->
 				</div>
 
+				<h2>Collection</h2>
 				<div class="file-input">
-					<h2>Collection</h2>
 					<label for="csvFile">Upload Collection CSV:</label>
 					<input type="file" id="csvFile" accept=".csv">
+					<div id="savedCollectionInfo" class="saved-collection-info"></div>
+					<button id="clearCollectionButton" class="small-button danger-button" style="display:none;">Clear
+						Saved Collection</button>
 				</div>
 
+
+				<div id="loading">Processing...</div>
+			</div>
+
+			<!-- Column 2: Deck List Input -->
+			<div class="column medium-column">
 				<h2>Deck List</h2>
+				<input type="text" id="deckNameInput"
+					placeholder="Deck Name (will be extracted from first line if available)">
 				<textarea id="deckList"
 					placeholder="Paste your deck list here (format: '4 Nurturing Pixie')"></textarea>
 				<div class="action-row">
 					<button id="checkButton">Check Collection</button>
-					<button id="addToShoppingListButton" class="secondary-button">Add Missing to Shopping List</button>
+					<button id="saveButton">Save Deck</button>
+					<button id="clearButton" class="secondary-button">Clear</button>
+					<button id="addToShoppingListButton" class="secondary-button">Add Missing to List</button>
 				</div>
-				<div id="loading">Processing...</div>
 			</div>
-			<div class="column">
+
+			<!-- Column 3: Results -->
+			<div class="column wide-column">
 				<h2>Results</h2>
 				<div id="results" class="results">
 					<p>Upload your collection CSV and paste your deck list, then click "Check Collection".</p>
@@ -76,6 +91,7 @@
 	<script src="deck-manager.js"></script>
 	<script src="collection-checker.js"></script>
 	<script src="shopping-list.js"></script>
+	<script src="collection-storage.js"></script>
 	<script src="main.js"></script>
 </body>
 

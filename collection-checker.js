@@ -25,12 +25,6 @@ function checkCollection() {
 	loadingDiv.style.display = 'block';
 	resultsDiv.innerHTML = '<p>Processing your collection and deck list...</p>';
 
-	if (!fileInput.files[0]) {
-		resultsDiv.innerHTML = '<p>Please upload your collection CSV first.</p>';
-		loadingDiv.style.display = 'none';
-		return;
-	}
-
 	if (!deckListText.trim()) {
 		resultsDiv.innerHTML = '<p>Please paste your deck list.</p>';
 		loadingDiv.style.display = 'none';
@@ -45,26 +39,50 @@ function checkCollection() {
 		return;
 	}
 
-	Papa.parse(fileInput.files[0], {
-		header: true,
-		skipEmptyLines: true,
-		dynamicTyping: true,
-		complete: function (results) {
-			console.log("CSV parsing complete");
+	// Try loading the collection from localStorage first
+	let useSavedCollection = false;
 
-			if (results.errors && results.errors.length > 0) {
-				console.warn("CSV parsing errors:", results.errors);
-			}
-
-			const collection = results.data;
-			displayResults(deckList, collection);
+	if (!fileInput.files[0]) {
+		const savedCollection = loadCollectionFromStorage();
+		if (savedCollection) {
+			useSavedCollection = true;
+			displayResults(deckList, savedCollection.data);
 			loadingDiv.style.display = 'none';
-		},
-		error: function (error) {
-			resultsDiv.innerHTML = `<p>Error parsing CSV: ${error}</p>`;
+		} else {
+			resultsDiv.innerHTML = '<p>Please upload your collection CSV first.</p>';
 			loadingDiv.style.display = 'none';
+			return;
 		}
-	});
+	}
+
+	// If we're not using the saved collection, parse the uploaded file
+	if (!useSavedCollection) {
+		Papa.parse(fileInput.files[0], {
+			header: true,
+			skipEmptyLines: true,
+			dynamicTyping: true,
+			complete: function (results) {
+				console.log("CSV parsing complete");
+
+				if (results.errors && results.errors.length > 0) {
+					console.warn("CSV parsing errors:", results.errors);
+				}
+
+				const collection = results.data;
+
+				// Save the collection to localStorage for future use
+				saveCollectionToStorage(collection, fileInput.files[0].name);
+				updateSavedCollectionInfo();
+
+				displayResults(deckList, collection);
+				loadingDiv.style.display = 'none';
+			},
+			error: function (error) {
+				resultsDiv.innerHTML = `<p>Error parsing CSV: ${error}</p>`;
+				loadingDiv.style.display = 'none';
+			}
+		});
+	}
 }
 
 function displayResults(deckList, collection) {
@@ -180,12 +198,12 @@ function displayResults(deckList, collection) {
 	const nonBasicLands = deckList.filter(card => !card.isBasicLand);
 	const nonBasicCardsNeeded = nonBasicLands.reduce((sum, card) => sum + card.quantity, 0);
 
-	// Create summary (exclude basic lands from calculation)
+	// Create a more compact summary
 	const summary = `
         <div class="summary">
-            <p>Cards in deck: ${deckList.length} unique cards (${totalCardsNeeded} total)</p>
-            <p>Non-basic cards needed: ${nonBasicCardsNeeded}</p>
-            <p>You have: ${totalCardsFound}/${nonBasicCardsNeeded} non-basic cards (${Math.round(totalCardsFound / nonBasicCardsNeeded * 100)}%)</p>
+            <p>Cards: ${deckList.length} unique (${totalCardsNeeded} total)</p>
+            <p>Non-basic: ${nonBasicCardsNeeded}</p>
+            <p>Have: ${totalCardsFound}/${nonBasicCardsNeeded} (${Math.round(totalCardsFound / nonBasicCardsNeeded * 100)}%)</p>
             <p>
                 <span class="card-status found">${results.filter(r => r.status === 'found' && !r.isBasicLand).length} Complete</span>
                 <span class="card-status partial">${cardsWithPartialMatch} Partial</span>
@@ -265,4 +283,4 @@ function displayResults(deckList, collection) {
     `;
 
 	resultsDiv.innerHTML = summary + tableHtml;
-}	
+}

@@ -1,17 +1,82 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-    <meta charset="utf-8">
-    <title>Benjamin Hoffman</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <base href="">
-    <link rel="icon" href="favicon.ico">
-    <!-- imported CSS are concatenated and added automatically -->
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>MTG Collection Checker</title>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"
+		integrity="sha512-dfX5uYVXzyU8+KHqj8bjo7UkOdg18PaOtpa48djpNbZHwExddghZ+ZmzWT06R5v6NSk3ZUfsH6FNEDepLx9hPQ=="
+		crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+	<link rel="stylesheet" href="styles.css">
+</head>
 
-<link href="vendors~bcc8009a.261e5f7a56ea812fad20.chunk.css" rel="stylesheet"><link href="vendors~442b0bcd.261e5f7a56ea812fad20.chunk.css" rel="stylesheet"></head>
+<body>
+	<h1>MTG Collection Checker</h1>
 
-<body aurelia-app="main">
-<script src="runtime~app.261e5f7a56ea812fad20.bundle.js"></script><script src="vendors~bcc8009a.261e5f7a56ea812fad20.chunk.js"></script><script src="vendors~fd28f614.261e5f7a56ea812fad20.chunk.js"></script><script src="vendors~0ba1d959.261e5f7a56ea812fad20.chunk.js"></script><script src="vendors~556c66f2.261e5f7a56ea812fad20.chunk.js"></script><script src="vendors~72fdf3f2.261e5f7a56ea812fad20.chunk.js"></script><script src="vendors~50e8d500.261e5f7a56ea812fad20.chunk.js"></script><script src="vendors~5ea1390f.261e5f7a56ea812fad20.chunk.js"></script><script src="vendors~ecff2e3d.261e5f7a56ea812fad20.chunk.js"></script><script src="vendors~9e0f4621.261e5f7a56ea812fad20.chunk.js"></script><script src="vendors~7274e1de.261e5f7a56ea812fad20.chunk.js"></script><script src="vendors~442b0bcd.261e5f7a56ea812fad20.chunk.js"></script><script src="vendors~cca0caac.261e5f7a56ea812fad20.chunk.js"></script><script src="vendors~f9ca8911.261e5f7a56ea812fad20.chunk.js"></script><script src="vendors~4b106089.261e5f7a56ea812fad20.chunk.js"></script><script src="app~f075b844.261e5f7a56ea812fad20.chunk.js"></script></body>
+	<div class="tab">
+		<button class="tablinks active" onclick="openTab(event, 'checkTab')">Check Collection</button>
+		<button class="tablinks" onclick="openTab(event, 'shoppingTab')">Shopping List</button>
+	</div>
+
+	<!-- Check Collection Tab -->
+	<div id="checkTab" class="tabcontent active">
+		<div class="container">
+			<div class="column">
+				<h2>Deck List</h2>
+				<div class="deck-list-container">
+					<input type="text" id="deckNameInput"
+						placeholder="Deck Name (will be extracted from first line if available)">
+					<div class="action-row">
+						<button id="saveButton">Save Deck</button>
+						<button id="clearButton" class="secondary-button">Clear</button>
+					</div>
+					<h3>Saved Decks</h3>
+					<div id="savedDecks" class="saved-decks">
+						<!-- Saved decks will be listed here -->
+					</div>
+				</div>
+
+				<div class="file-input">
+					<h2>Collection</h2>
+					<label for="csvFile">Upload Collection CSV:</label>
+					<input type="file" id="csvFile" accept=".csv">
+				</div>
+
+				<h2>Deck List</h2>
+				<textarea id="deckList"
+					placeholder="Paste your deck list here (format: '4 Nurturing Pixie')"></textarea>
+				<div class="action-row">
+					<button id="checkButton">Check Collection</button>
+					<button id="addToShoppingListButton" class="secondary-button">Add Missing to Shopping List</button>
+				</div>
+				<div id="loading">Processing...</div>
+			</div>
+			<div class="column">
+				<h2>Results</h2>
+				<div id="results" class="results">
+					<p>Upload your collection CSV and paste your deck list, then click "Check Collection".</p>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Shopping List Tab -->
+	<div id="shoppingTab" class="tabcontent">
+		<div class="shopping-list-header">
+			<h2>Your Shopping List</h2>
+			<button id="clearShoppingList" class="danger-button">Clear Shopping List</button>
+		</div>
+		<p>Check off cards as you find them or remove them from your list.</p>
+		<div id="shoppingListContainer" class="shopping-list-container">
+			<!-- Shopping list items will be shown here -->
+		</div>
+	</div>
+
+	<script src="deck-manager.js"></script>
+	<script src="collection-checker.js"></script>
+	<script src="shopping-list.js"></script>
+	<script src="main.js"></script>
+</body>
 
 </html>

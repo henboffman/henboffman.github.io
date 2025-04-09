@@ -1,0 +1,296 @@
+body {
+	font-family: Arial, sans-serif;
+	max-width: 98%;
+	/* Almost full width */
+	margin: 0 auto;
+	padding: 10px;
+	background-color: #f5f5f5;
+}
+
+.container {
+	display: flex;
+	gap: 15px;
+}
+
+.column {
+	flex: 1;
+	background-color: white;
+	padding: 15px;
+	border-radius: 8px;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	min-width: 450px;
+	max-height: calc(100vh - 120px);
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+}
+
+textarea {
+	width: 100%;
+	height: 400px;
+	margin-bottom: 15px;
+	padding: 10px;
+	font-family: monospace;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+}
+
+button {
+	background-color: #4CAF50;
+	color: white;
+	border: none;
+	padding: 10px 15px;
+	border-radius: 4px;
+	cursor: pointer;
+	font-size: 16px;
+	margin-right: 10px;
+}
+
+button:hover {
+	background-color: #45a049;
+}
+
+.results {
+	margin-top: 10px;
+	max-height: calc(100vh - 180px);
+	overflow-y: auto;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	background-color: white;
+}
+
+table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+thead {
+	position: sticky;
+	top: 0;
+	z-index: 10;
+}
+
+th,
+td {
+	border: 1px solid #ddd;
+	padding: 6px 8px;
+	text-align: left;
+}
+
+th {
+	background-color: #4CAF50;
+	color: white;
+	font-weight: bold;
+	box-shadow: 0 2px 3px rgba(0, 0, 0, 0.2);
+}
+
+tr:nth-child(even) {
+	background-color: #f9f9f9;
+}
+
+.card-status {
+	padding: 4px 8px;
+	border-radius: 4px;
+	display: inline-block;
+	font-weight: bold;
+}
+
+.found {
+	background-color: #dff0d8;
+	color: #3c763d;
+}
+
+.missing {
+	background-color: #f2dede;
+	color: #a94442;
+}
+
+.partial {
+	background-color: #fcf8e3;
+	color: #8a6d3b;
+}
+
+.file-input {
+	margin-bottom: 15px;
+}
+
+.summary {
+	border: 1px solid #ddd;
+	padding: 8px 12px;
+	border-radius: 4px;
+	margin-bottom: 10px;
+	font-weight: bold;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 20px;
+	align-items: center;
+	background-color: #f9f9f9;
+}
+
+.summary p {
+	margin: 5px 0;
+	padding: 0;
+}
+
+#loading {
+	display: none;
+	margin-top: 10px;
+}
+
+.tab {
+	overflow: hidden;
+	border: 1px solid #ccc;
+	background-color: #f1f1f1;
+	border-radius: 4px 4px 0 0;
+}
+
+.tab button {
+	background-color: inherit;
+	float: left;
+	border: none;
+	outline: none;
+	cursor: pointer;
+	padding: 14px 16px;
+	transition: 0.3s;
+	color: #333;
+	border-radius: 0;
+	margin: 0;
+}
+
+.tab button:hover {
+	background-color: #ddd;
+}
+
+.tab button.active {
+	background-color: #4CAF50;
+	color: white;
+}
+
+.tabcontent {
+	display: none;
+	padding: 20px;
+	border: 1px solid #ccc;
+	border-top: none;
+	border-radius: 0 0 4px 4px;
+	background-color: white;
+}
+
+.tabcontent.active {
+	display: block;
+}
+
+.deck-list-container {
+	margin-bottom: 20px;
+}
+
+.saved-decks {
+	margin-top: 15px;
+	max-height: 200px;
+	overflow-y: auto;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	padding: 10px;
+}
+
+.saved-deck-item {
+	padding: 8px 12px;
+	margin-bottom: 5px;
+	background-color: #f9f9f9;
+	border-radius: 4px;
+	cursor: pointer;
+	display: flex;
+	justify-content: space-between;
+}
+
+.saved-deck-item:hover {
+	background-color: #eee;
+}
+
+.saved-deck-item button {
+	padding: 2px 8px;
+	font-size: 12px;
+	margin-left: 10px;
+	background-color: #f44336;
+}
+
+.shopping-list-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.shopping-list-container {
+	margin-top: 15px;
+}
+
+.shopping-item {
+	display: flex;
+	align-items: center;
+	padding: 8px 12px;
+	margin-bottom: 5px;
+	background-color: #f9f9f9;
+	border-radius: 4px;
+}
+
+.shopping-item.found {
+	background-color: #dff0d8;
+	text-decoration: line-through;
+	opacity: 0.7;
+}
+
+.shopping-item input[type="checkbox"] {
+	margin-right: 10px;
+}
+
+.shopping-item-quantity {
+	margin-right: 10px;
+	font-weight: bold;
+	min-width: 30px;
+}
+
+.shopping-item-card {
+	flex-grow: 1;
+}
+
+.shopping-item-actions {
+	margin-left: 10px;
+}
+
+.nav-buttons {
+	margin-bottom: 15px;
+}
+
+.checkbox-cell {
+	text-align: center;
+}
+
+#deckNameInput {
+	padding: 10px;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	font-size: 16px;
+	margin-bottom: 15px;
+	width: 100%;
+}
+
+.action-row {
+	margin-bottom: 15px;
+	display: flex;
+	gap: 10px;
+}
+
+.secondary-button {
+	background-color: #607d8b;
+}
+
+.secondary-button:hover {
+	background-color: #455a64;
+}
+
+.danger-button {
+	background-color: #f44336;
+}
+
+.danger-button:hover {
+	background-color: #d32f2f;
+}

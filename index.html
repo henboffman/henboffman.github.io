@@ -4,7 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>THE DESCENT - Eldritch Soundscape Generator</title>
-  <link rel="stylesheet" href="/src/styles/main.css">
+  <script type="module" crossorigin src="/assets/index-DtBzrd1D.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-DgtyrUta.css">
 </head>
 <body>
   <div id="app">
@@ -242,6 +243,34 @@
           </div>
         </div>
       </section>
+
+      <!-- Export Audio Panel -->
+      <section class="panel" id="export-panel">
+        <h2 class="panel-title">EXPORT AUDIO</h2>
+        <div class="panel-content">
+          <div class="control-row">
+            <div class="control-group">
+              <label class="control-label">Duration (seconds)</label>
+              <input type="number" id="export-duration" class="number-input" value="60" min="10" max="600" step="10">
+            </div>
+            <div class="control-group" style="flex: 2;">
+              <label class="control-label">Status</label>
+              <div id="export-status" class="export-status">Ready to export</div>
+            </div>
+            <div class="control-group">
+              <label class="control-label">&nbsp;</label>
+              <button id="export-audio-btn" class="btn btn-export">
+                <span class="icon">&#9835;</span> Generate WAV
+              </button>
+            </div>
+          </div>
+          <div class="control-row">
+            <div id="export-progress-container" class="progress-container" style="display: none;">
+              <div id="export-progress-bar" class="progress-bar"></div>
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
 
     <footer class="footer">
@@ -249,6 +278,5 @@
     </footer>
   </div>
 
-  <script type="module" src="/src/main.ts"></script>
 </body>
 </html>

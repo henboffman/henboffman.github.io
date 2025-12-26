@@ -1,98 +1,254 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>MTG Collection Checker</title>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"
-		integrity="sha512-dfX5uYVXzyU8+KHqj8bjo7UkOdg18PaOtpa48djpNbZHwExddghZ+ZmzWT06R5v6NSk3ZUfsH6FNEDepLx9hPQ=="
-		crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-	<link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>THE DESCENT - Eldritch Soundscape Generator</title>
+  <link rel="stylesheet" href="/src/styles/main.css">
 </head>
-
 <body>
-	<div class="header-container">
-		<h1>MTG Collection Checker</h1>
-		<div class="theme-switch-wrapper">
-			<span>Dark Mode</span>
-			<label class="theme-switch">
-				<input type="checkbox" id="darkModeToggle">
-				<span class="slider"></span>
-			</label>
-		</div>
-	</div>
+  <div id="app">
+    <header class="header">
+      <h1 class="title">THE DESCENT</h1>
+      <p class="subtitle">Eldritch Soundscape Generator</p>
+      <div class="transport-controls">
+        <button id="play-btn" class="btn btn-play">
+          <span class="icon">&#9654;</span> Initialize Audio
+        </button>
+        <button id="stop-btn" class="btn btn-stop" disabled>
+          <span class="icon">&#9632;</span> Stop
+        </button>
+      </div>
+    </header>
 
-	<div class="tab">
-		<button class="tablinks active" onclick="openTab(event, 'checkTab')">Check Collection</button>
-		<button class="tablinks" onclick="openTab(event, 'shoppingTab')">Shopping List</button>
-	</div>
+    <main class="main-content">
+      <!-- Global Controls -->
+      <section class="panel global-panel">
+        <div class="control-group">
+          <label class="control-label">Layer</label>
+          <input type="range" id="layer-slider" min="0" max="5" step="1" value="0">
+          <span id="layer-value" class="value-display">0</span>
+        </div>
+        <div class="control-group">
+          <label class="control-label">Stability</label>
+          <input type="range" id="stability-slider" min="0" max="100" step="1" value="100">
+          <span id="stability-value" class="value-display">100</span>
+        </div>
+        <div class="control-group">
+          <label class="control-label">Master Volume</label>
+          <input type="range" id="master-volume" min="-60" max="0" step="1" value="-12">
+          <span id="master-volume-value" class="value-display">-12 dB</span>
+        </div>
+      </section>
 
-	<!-- Check Collection Tab -->
-	<div id="checkTab" class="tabcontent active">
-		<div class="three-column-container">
-			<!-- Column 1: Saved Decks & Collection Upload -->
-			<div class="column narrow-column">
-				<h2>Saved Decks</h2>
-				<div id="savedDecks" class="saved-decks">
-					<!-- Saved decks will be listed here -->
-				</div>
+      <!-- Drone Panel -->
+      <section class="panel" id="drone-panel">
+        <h2 class="panel-title">DRONE</h2>
+        <div class="panel-content">
+          <div class="control-row">
+            <div class="control-group">
+              <label class="control-label">Fundamental</label>
+              <input type="range" id="drone-fundamental" min="40" max="70" step="1" value="55">
+              <span id="drone-fundamental-value" class="value-display">55 Hz</span>
+            </div>
+            <div class="control-group">
+              <label class="control-label">Harmonics</label>
+              <input type="range" id="drone-harmonics" min="1" max="8" step="1" value="3">
+              <span id="drone-harmonics-value" class="value-display">3</span>
+            </div>
+            <div class="control-group">
+              <label class="control-label">Detune</label>
+              <input type="range" id="drone-detune" min="0" max="50" step="1" value="5">
+              <span id="drone-detune-value" class="value-display">5 cents</span>
+            </div>
+            <div class="control-group">
+              <label class="control-label">Sub Amp</label>
+              <input type="range" id="drone-sub" min="0" max="0.4" step="0.01" value="0.1">
+              <span id="drone-sub-value" class="value-display">0.10</span>
+            </div>
+          </div>
+          <div class="control-row">
+            <div class="control-group">
+              <label class="control-label">Amp LFO Rate</label>
+              <input type="range" id="drone-amp-rate" min="0.01" max="0.2" step="0.01" value="0.08">
+              <span id="drone-amp-rate-value" class="value-display">0.08 Hz</span>
+            </div>
+            <div class="control-group">
+              <label class="control-label">Amp LFO Depth</label>
+              <input type="range" id="drone-amp-depth" min="0" max="0.5" step="0.01" value="0.15">
+              <span id="drone-amp-depth-value" class="value-display">0.15</span>
+            </div>
+            <div class="control-group">
+              <label class="control-label">Filter Cutoff</label>
+              <input type="range" id="drone-filter-cutoff" min="100" max="1000" step="10" value="400">
+              <span id="drone-filter-cutoff-value" class="value-display">400 Hz</span>
+            </div>
+            <div class="control-group">
+              <label class="control-label">Filter Res</label>
+              <input type="range" id="drone-filter-res" min="0" max="1" step="0.01" value="0.3">
+              <span id="drone-filter-res-value" class="value-display">0.30</span>
+            </div>
+          </div>
+        </div>
+      </section>
 
-				<h2>Collection</h2>
-				<div class="file-input">
-					<label for="csvFile">Upload Collection CSV:</label>
-					<input type="file" id="csvFile" accept=".csv">
-					<div id="savedCollectionInfo" class="saved-collection-info"></div>
-					<button id="clearCollectionButton" class="small-button danger-button" style="display:none;">Clear
-						Saved Collection</button>
-				</div>
+      <!-- Whisper Panel -->
+      <section class="panel" id="whisper-panel">
+        <h2 class="panel-title">WHISPERS</h2>
+        <div class="panel-content">
+          <div class="control-row">
+            <div class="control-group">
+              <label class="control-label">Enabled</label>
+              <input type="checkbox" id="whisper-enabled" class="toggle">
+            </div>
+            <div class="control-group">
+              <label class="control-label">Density</label>
+              <input type="range" id="whisper-density" min="0" max="0.2" step="0.01" value="0.03">
+              <span id="whisper-density-value" class="value-display">0.03/s</span>
+            </div>
+            <div class="control-group">
+              <label class="control-label">Volume</label>
+              <input type="range" id="whisper-volume" min="-40" max="-10" step="1" value="-24">
+              <span id="whisper-volume-value" class="value-display">-24 dB</span>
+            </div>
+            <div class="control-group">
+              <label class="control-label">Reverb</label>
+              <input type="range" id="whisper-reverb" min="0" max="1" step="0.01" value="0.5">
+              <span id="whisper-reverb-value" class="value-display">0.50</span>
+            </div>
+          </div>
+        </div>
+      </section>
 
+      <!-- Rhythm Panel -->
+      <section class="panel" id="rhythm-panel">
+        <h2 class="panel-title">RHYTHM</h2>
+        <div class="panel-content">
+          <div class="control-row">
+            <div class="control-group">
+              <label class="control-label">Pulse Enabled</label>
+              <input type="checkbox" id="pulse-enabled" class="toggle">
+            </div>
+            <div class="control-group">
+              <label class="control-label">BPM</label>
+              <input type="range" id="rhythm-bpm" min="50" max="120" step="1" value="65">
+              <span id="rhythm-bpm-value" class="value-display">65</span>
+            </div>
+            <div class="control-group">
+              <label class="control-label">Variance</label>
+              <input type="range" id="rhythm-variance" min="0" max="30" step="1" value="5">
+              <span id="rhythm-variance-value" class="value-display">5%</span>
+            </div>
+            <div class="control-group">
+              <label class="control-label">Skip %</label>
+              <input type="range" id="rhythm-skip" min="0" max="25" step="1" value="3">
+              <span id="rhythm-skip-value" class="value-display">3%</span>
+            </div>
+          </div>
+          <div class="control-row">
+            <div class="control-group">
+              <label class="control-label">Breath Enabled</label>
+              <input type="checkbox" id="breath-enabled" class="toggle">
+            </div>
+            <div class="control-group">
+              <label class="control-label">Breath Cycle</label>
+              <input type="range" id="rhythm-breath" min="4" max="20" step="1" value="12">
+              <span id="rhythm-breath-value" class="value-display">12s</span>
+            </div>
+          </div>
+        </div>
+      </section>
 
-				<div id="loading">Processing...</div>
-			</div>
+      <!-- Texture Panel -->
+      <section class="panel" id="texture-panel">
+        <h2 class="panel-title">TEXTURE</h2>
+        <div class="panel-content">
+          <div class="control-row">
+            <div class="control-group">
+              <label class="control-label">Void</label>
+              <input type="range" id="texture-void" min="0" max="1" step="0.01" value="0.3">
+              <span id="texture-void-value" class="value-display">0.30</span>
+            </div>
+            <div class="control-group">
+              <label class="control-label">Stone</label>
+              <input type="range" id="texture-stone" min="0" max="1" step="0.01" value="0">
+              <span id="texture-stone-value" class="value-display">0.00</span>
+            </div>
+            <div class="control-group">
+              <label class="control-label">Water</label>
+              <input type="range" id="texture-water" min="0" max="1" step="0.01" value="0">
+              <span id="texture-water-value" class="value-display">0.00</span>
+            </div>
+            <div class="control-group">
+              <label class="control-label">Static</label>
+              <input type="range" id="texture-static" min="0" max="1" step="0.01" value="0">
+              <span id="texture-static-value" class="value-display">0.00</span>
+            </div>
+            <div class="control-group">
+              <label class="control-label">Organic</label>
+              <input type="range" id="texture-organic" min="0" max="1" step="0.01" value="0">
+              <span id="texture-organic-value" class="value-display">0.00</span>
+            </div>
+          </div>
+        </div>
+      </section>
 
-			<!-- Column 2: Deck List Input -->
-			<div class="column medium-column">
-				<h2>Deck List</h2>
-				<input type="text" id="deckNameInput"
-					placeholder="Deck Name (will be extracted from first line if available)">
-				<textarea id="deckList"
-					placeholder="Paste your deck list here (format: '4 Nurturing Pixie')"></textarea>
-				<div class="action-row">
-					<button id="checkButton">Check Collection</button>
-					<button id="saveButton">Save Deck</button>
-					<button id="clearButton" class="secondary-button">Clear</button>
-					<button id="addToShoppingListButton" class="secondary-button">Add Missing to List</button>
-				</div>
-			</div>
+      <!-- Wrongness Panel -->
+      <section class="panel" id="wrongness-panel">
+        <h2 class="panel-title">WRONGNESS</h2>
+        <div class="panel-content">
+          <div class="control-row">
+            <div class="control-group">
+              <label class="control-label">Intensity</label>
+              <input type="range" id="wrongness-intensity" min="0" max="1" step="0.01" value="0.1">
+              <span id="wrongness-intensity-value" class="value-display">0.10</span>
+            </div>
+            <div class="control-group">
+              <label class="control-label">Pitch Drift</label>
+              <input type="range" id="wrongness-pitch" min="0" max="50" step="1" value="5">
+              <span id="wrongness-pitch-value" class="value-display">5 cents</span>
+            </div>
+            <div class="control-group">
+              <label class="control-label">Temporal</label>
+              <input type="range" id="wrongness-temporal" min="0" max="100" step="1" value="0">
+              <span id="wrongness-temporal-value" class="value-display">0 ms</span>
+            </div>
+            <div class="control-group">
+              <label class="control-label">Spatial</label>
+              <input type="range" id="wrongness-spatial" min="0" max="50" step="1" value="0">
+              <span id="wrongness-spatial-value" class="value-display">0 ms</span>
+            </div>
+          </div>
+        </div>
+      </section>
 
-			<!-- Column 3: Results -->
-			<div class="column wide-column">
-				<h2>Results</h2>
-				<div id="results" class="results">
-					<p>Upload your collection CSV and paste your deck list, then click "Check Collection".</p>
-				</div>
-			</div>
-		</div>
-	</div>
+      <!-- Presets Panel -->
+      <section class="panel" id="presets-panel">
+        <h2 class="panel-title">PRESETS</h2>
+        <div class="panel-content">
+          <div class="control-row">
+            <select id="preset-select" class="select">
+              <option value="">-- Select Preset --</option>
+              <option value="surface">Surface</option>
+              <option value="veil">The Veil</option>
+              <option value="depths">The Depths</option>
+              <option value="threshold">Threshold</option>
+              <option value="beyond">Beyond</option>
+            </select>
+            <button id="preset-save" class="btn btn-small">Save</button>
+            <button id="preset-export" class="btn btn-small">Export</button>
+            <button id="preset-import" class="btn btn-small">Import</button>
+            <input type="file" id="preset-file" accept=".json" style="display: none;">
+          </div>
+        </div>
+      </section>
+    </main>
 
-	<!-- Shopping List Tab -->
-	<div id="shoppingTab" class="tabcontent">
-		<div class="shopping-list-header">
-			<h2>Your Shopping List</h2>
-			<button id="clearShoppingList" class="danger-button">Clear Shopping List</button>
-		</div>
-		<p>Check off cards as you find them or remove them from your list.</p>
-		<div id="shoppingListContainer" class="shopping-list-container">
-			<!-- Shopping list items will be shown here -->
-		</div>
-	</div>
+    <footer class="footer">
+      <p class="quote">"Listen. Not with your ears. With the spaces between your thoughts."</p>
+    </footer>
+  </div>
 
-	<script src="deck-manager.js"></script>
-	<script src="collection-checker.js"></script>
-	<script src="shopping-list.js"></script>
-	<script src="collection-storage.js"></script>
-	<script src="main.js"></script>
+  <script type="module" src="/src/main.ts"></script>
 </body>
-
 </html>

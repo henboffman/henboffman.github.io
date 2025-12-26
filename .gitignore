@@ -14,6 +14,7 @@
 /[Uu]serSettings/
 /[Mm]emoryCaptures/
 /[Aa]ssets/AssetStoreTools/
+/node_modules/
 
 # Third-party assets and plugins
 /[Aa]ssets/[Tt]hirdparty/

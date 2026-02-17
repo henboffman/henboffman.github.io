@@ -1,220 +1,1540 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
-		<title>Veilstorm</title>
-		<style>
-html, body, #canvas {
-	margin: 0;
-	padding: 0;
-	border: 0;
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Website Arena</title>
+<style>
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --bg:#0a0a0f;--bg2:#12121a;--bg3:#1a1a25;
+    --red:#ff3333;--orange:#ff6600;--gold:#ffaa00;
+    --cyan:#00ccff;--purple:#aa44ff;
+    --text:#e0e0e0;--dim:#666;
+  }
+  body{
+    font-family:'Courier New',monospace;
+    background:var(--bg);color:var(--text);
+    min-height:100vh;overflow-x:hidden;
+  }
+
+  /* ── Input Screen ── */
+  #input-screen{
+    display:flex;flex-direction:column;align-items:center;
+    justify-content:center;min-height:100vh;padding:2rem;
+  }
+  #input-screen h1{
+    font-size:3rem;text-transform:uppercase;letter-spacing:0.3em;
+    background:linear-gradient(135deg,var(--red),var(--orange),var(--gold));
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+    margin-bottom:0.5rem;animation:titlePulse 2s ease-in-out infinite;
+  }
+  #input-screen .subtitle{color:var(--dim);margin-bottom:3rem;letter-spacing:0.2em;font-size:0.9rem}
+  @keyframes titlePulse{
+    0%,100%{filter:brightness(1)}50%{filter:brightness(1.3)}
+  }
+  .url-inputs{
+    display:flex;gap:2rem;width:100%;max-width:900px;
+    align-items:center;flex-wrap:wrap;justify-content:center;
+  }
+  .url-group{flex:1;min-width:300px}
+  .url-group label{
+    display:block;font-size:0.8rem;text-transform:uppercase;
+    letter-spacing:0.15em;margin-bottom:0.5rem;
+  }
+  .url-group:first-child label{color:var(--cyan)}
+  .url-group:last-child label{color:var(--red)}
+  .url-group input{
+    width:100%;padding:0.8rem 1rem;background:var(--bg2);
+    border:1px solid #333;color:var(--text);font-family:inherit;
+    font-size:0.95rem;border-radius:4px;outline:none;
+    transition:border-color 0.3s;
+  }
+  .url-group input:focus{border-color:var(--orange)}
+  .vs-text{
+    font-size:2rem;font-weight:bold;
+    color:var(--orange);text-shadow:0 0 20px rgba(255,102,0,0.5);
+  }
+  #fight-btn{
+    margin-top:2.5rem;padding:1rem 3rem;font-size:1.3rem;
+    font-family:inherit;font-weight:bold;text-transform:uppercase;
+    letter-spacing:0.2em;background:linear-gradient(135deg,var(--red),var(--orange));
+    color:#fff;border:none;border-radius:4px;cursor:pointer;
+    transition:transform 0.2s,box-shadow 0.2s;
+    box-shadow:0 0 30px rgba(255,51,51,0.3);
+  }
+  #fight-btn:hover{transform:scale(1.05);box-shadow:0 0 50px rgba(255,51,51,0.5)}
+  #fight-btn:disabled{opacity:0.4;cursor:not-allowed;transform:none}
+  .error-msg{color:var(--red);margin-top:1rem;font-size:0.85rem;min-height:1.2em}
+  .proxy-note{color:var(--dim);font-size:0.7rem;margin-top:2rem;max-width:600px;text-align:center;line-height:1.6}
+
+  /* ── Loading Screen ── */
+  #loading-screen{
+    display:none;flex-direction:column;align-items:center;
+    justify-content:center;min-height:100vh;padding:2rem;
+  }
+  .loader{
+    width:60px;height:60px;border:3px solid var(--bg3);
+    border-top-color:var(--orange);border-radius:50%;
+    animation:spin 0.8s linear infinite;margin-bottom:2rem;
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+  #loading-text{font-size:1rem;color:var(--dim);letter-spacing:0.1em}
+
+  /* ── Arena ── */
+  #arena{display:none;min-height:100vh;flex-direction:column}
+  .arena-header{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:0.8rem 2rem;background:var(--bg2);border-bottom:1px solid #222;
+  }
+  .arena-header .site-name{
+    font-size:0.9rem;max-width:35%;overflow:hidden;
+    text-overflow:ellipsis;white-space:nowrap;
+  }
+  .arena-header .site-name:first-child{color:var(--cyan)}
+  .arena-header .site-name:last-child{color:var(--red)}
+  .arena-header .round-info{
+    color:var(--gold);font-weight:bold;text-transform:uppercase;
+    letter-spacing:0.15em;font-size:0.85rem;
+  }
+  .hp-bars{
+    display:flex;padding:0.5rem 2rem;gap:1rem;background:var(--bg2);
+    border-bottom:1px solid #1a1a1a;
+  }
+  .hp-bar-wrap{flex:1}
+  .hp-bar-label{display:flex;justify-content:space-between;font-size:0.7rem;margin-bottom:3px}
+  .hp-bar-label span:first-child{color:var(--dim)}
+  .hp-bar-label .hp-val{color:var(--gold)}
+  .hp-bar{height:6px;background:#1a1a1a;border-radius:3px;overflow:hidden}
+  .hp-bar-fill{height:100%;border-radius:3px;transition:width 0.6s ease}
+  .hp-bar-wrap:first-child .hp-bar-fill{background:linear-gradient(90deg,var(--cyan),#0088cc)}
+  .hp-bar-wrap:last-child .hp-bar-fill{background:linear-gradient(90deg,#cc0000,var(--red))}
+
+  /* ── View Toggle ── */
+  .view-toggle{
+    display:flex;justify-content:center;gap:0;
+    background:var(--bg2);border-bottom:1px solid #1a1a1a;
+    padding:0 2rem;
+  }
+  .view-toggle button{
+    padding:0.5rem 1.5rem;font-family:inherit;font-size:0.7rem;
+    text-transform:uppercase;letter-spacing:0.15em;
+    background:transparent;color:var(--dim);border:none;
+    border-bottom:2px solid transparent;cursor:pointer;
+    transition:all 0.3s;
+  }
+  .view-toggle button:hover{color:var(--text)}
+  .view-toggle button.active{
+    color:var(--orange);border-bottom-color:var(--orange);
+  }
+
+  /* ── Battlefield (cards view) ── */
+  .battlefield{
+    flex:1;display:flex;gap:0;overflow:hidden;position:relative;
+  }
+  .battlefield.hidden{display:none}
+  .army{
+    flex:1;padding:1rem;display:flex;flex-wrap:wrap;
+    align-content:flex-start;gap:6px;overflow-y:auto;
+    max-height:calc(100vh - 180px);position:relative;
+  }
+  .army-left{border-right:1px solid #1a1a1a}
+  .battlefield-divider{
+    position:absolute;left:50%;top:0;bottom:0;width:2px;
+    background:linear-gradient(180deg,transparent,var(--orange),transparent);
+    z-index:5;pointer-events:none;
+  }
+
+  /* ── Preview Panel (rendered view) ── */
+  .preview-panel{
+    flex:1;display:none;overflow:hidden;position:relative;
+  }
+  .preview-panel.visible{display:flex}
+  .preview-panel .preview-side{
+    flex:1;position:relative;overflow:hidden;
+    border-right:1px solid #1a1a1a;
+    --preview-scale:0.35;
+    height:calc(100vh - 180px);
+  }
+  .preview-panel .preview-side:last-child{border-right:none}
+  .preview-panel .preview-label{
+    position:absolute;top:0;left:0;right:0;z-index:10;
+    font-size:0.6rem;text-transform:uppercase;letter-spacing:0.1em;
+    padding:4px 10px;background:rgba(10,10,15,0.85);
+    border-bottom:1px solid #222;pointer-events:none;
+  }
+  .preview-side:first-child .preview-label{color:var(--cyan)}
+  .preview-side:last-child .preview-label{color:var(--red)}
+  .preview-panel iframe{
+    width:calc(100% / var(--preview-scale));
+    height:calc((100vh - 180px) / var(--preview-scale));
+    border:none;background:#fff;
+    transform:scale(var(--preview-scale));
+    transform-origin:0 0;
+    pointer-events:none;
+  }
+  .preview-panel .preview-divider{
+    position:absolute;left:50%;top:0;bottom:0;width:2px;
+    background:linear-gradient(180deg,transparent,var(--orange),transparent);
+    z-index:5;pointer-events:none;
+  }
+  /* In split mode, use a slightly larger scale since vertical space is smaller */
+  .preview-panel.split-mode .preview-side{
+    --preview-scale:0.3;
+    height:calc(60vh - 100px);
+  }
+  /* Vignette overlay for war-torn preview */
+  .preview-side .vignette{
+    display:none;position:absolute;inset:0;z-index:8;pointer-events:none;
+    background:radial-gradient(ellipse at center,transparent 40%,rgba(0,0,0,0.5) 100%);
+  }
+  .preview-side .smoke-overlay{
+    display:none;position:absolute;inset:0;z-index:9;pointer-events:none;
+    overflow:hidden;
+  }
+  .preview-panel.war-torn .vignette{display:block}
+  .preview-panel.war-torn .smoke-overlay{display:block}
+
+  /* ── Element Cards ── */
+  .el-card{
+    padding:4px 8px;border-radius:3px;font-size:0.65rem;
+    position:relative;transition:all 0.4s ease;
+    border:1px solid #2a2a2a;cursor:default;
+    max-width:100%;overflow:hidden;
+  }
+  .el-card .el-tag{font-weight:bold;margin-right:4px;opacity:0.7}
+  .el-card .el-preview{
+    opacity:0.5;max-width:120px;overflow:hidden;
+    text-overflow:ellipsis;white-space:nowrap;display:inline;
+  }
+  /* Role colors */
+  .el-card[data-role="boss"]{background:#2a1515;border-color:#661a1a;color:#ff6666}
+  .el-card[data-role="commander"]{background:#2a1f15;border-color:#664015;color:#ffaa55}
+  .el-card[data-role="officer"]{background:#2a2515;border-color:#665515;color:#ffcc44}
+  .el-card[data-role="shield"]{background:#152a20;border-color:#155530;color:#44cc77}
+  .el-card[data-role="striker"]{background:#2a1525;border-color:#661555;color:#ff55aa}
+  .el-card[data-role="scout"]{background:#15202a;border-color:#154066;color:#5599ff}
+  .el-card[data-role="ranger"]{background:#20152a;border-color:#401566;color:#aa55ff}
+  .el-card[data-role="artillery"]{background:#2a2a15;border-color:#666615;color:#cccc44}
+  .el-card[data-role="engineer"]{background:#152a2a;border-color:#156666;color:#44cccc}
+  .el-card[data-role="fortress"]{background:#1f1f1f;border-color:#555;color:#aaa}
+  .el-card[data-role="squad"]{background:#1a1f15;border-color:#405515;color:#88cc44}
+  .el-card[data-role="infantry"]{background:#1a1a20;border-color:#333355;color:#8888bb}
+  .el-card[data-role="civilian"]{background:#1a1a1a;border-color:#333;color:#888}
+  .el-card[data-role="messenger"]{background:#181818;border-color:#2a2a2a;color:#666}
+  .el-card[data-role="barracks"]{background:#1f1a20;border-color:#443355;color:#9977bb}
+  .el-card[data-role="vanguard"]{background:#1f2015;border-color:#445515;color:#99bb44}
+  .el-card[data-role="rearguard"]{background:#201f15;border-color:#554415;color:#bb9944}
+
+  /* ── Level / XP Visuals ── */
+  .el-card .el-level{
+    display:none;font-size:0.55rem;margin-left:4px;
+    font-weight:bold;vertical-align:middle;
+  }
+  .el-card.leveled .el-level{display:inline;color:var(--gold)}
+  .el-card.lv2{transform:scale(1.08);z-index:2;box-shadow:0 0 6px rgba(255,170,0,0.2)}
+  .el-card.lv3{transform:scale(1.16);z-index:3;box-shadow:0 0 10px rgba(255,170,0,0.3)}
+  .el-card.lv4{transform:scale(1.24);z-index:4;box-shadow:0 0 14px rgba(255,170,0,0.4)}
+  .el-card.lv5{transform:scale(1.35);z-index:5;box-shadow:0 0 20px rgba(255,170,0,0.5);border-color:var(--gold) !important}
+  .el-card.level-up{animation:levelUp 0.4s ease}
+  @keyframes levelUp{
+    0%{filter:brightness(1)}
+    40%{filter:brightness(2.5) saturate(0);transform:scale(1.3)}
+    100%{filter:brightness(1)}
+  }
+  .el-card .streak-badge{
+    display:none;position:absolute;top:-4px;right:-4px;
+    width:14px;height:14px;border-radius:50%;
+    font-size:0.5rem;line-height:14px;text-align:center;
+    font-weight:bold;color:#fff;z-index:10;
+  }
+  .el-card.on-streak .streak-badge{
+    display:block;background:var(--red);
+    box-shadow:0 0 6px rgba(255,51,51,0.5);
+  }
+
+  /* ── Battle Animations ── */
+  .el-card.attacking{animation:attack 0.4s ease}
+  .el-card.hit{animation:hit 0.3s ease}
+  .el-card.defeated{animation:defeat 0.5s ease forwards}
+  .el-card.crumbling{animation:crumble 0.5s ease forwards}
+
+  @keyframes attack{
+    0%{transform:translateX(0)}
+    50%{transform:translateX(var(--atk-dir,10px));filter:brightness(1.5)}
+    100%{transform:translateX(0)}
+  }
+  @keyframes hit{
+    0%{transform:translate(0)}
+    25%{transform:translate(-3px,2px);filter:brightness(0.5) saturate(2)}
+    50%{transform:translate(4px,-1px)}
+    75%{transform:translate(-2px,1px)}
+    100%{transform:translate(0);filter:brightness(1)}
+  }
+  @keyframes defeat{
+    0%{opacity:1;transform:scale(1) rotate(0)}
+    30%{opacity:0.8;transform:scale(1.05) rotate(-2deg);filter:brightness(0.3) sepia(1)}
+    60%{opacity:0.5;transform:scale(0.9) rotate(3deg) translateY(5px)}
+    80%{opacity:0.2;transform:scale(0.7) rotate(-5deg) translateY(10px);filter:grayscale(1)}
+    100%{opacity:0;transform:scale(0.3) rotate(8deg) translateY(20px);filter:grayscale(1)}
+  }
+  @keyframes crumble{
+    0%{opacity:1;transform:scale(1);clip-path:polygon(0 0,100% 0,100% 100%,0 100%)}
+    20%{clip-path:polygon(2% 3%,98% 1%,100% 97%,1% 100%)}
+    40%{opacity:0.7;transform:scale(0.95) rotate(1deg);clip-path:polygon(5% 8%,95% 2%,98% 90%,3% 95%)}
+    60%{opacity:0.4;transform:scale(0.85) rotate(-2deg) translateY(8px);clip-path:polygon(10% 15%,90% 5%,92% 80%,8% 88%)}
+    80%{opacity:0.15;transform:scale(0.6) rotate(4deg) translateY(15px)}
+    100%{opacity:0;transform:scale(0.3) rotate(7deg) translateY(25px)}
+  }
+
+  @keyframes flicker{
+    0%,100%{opacity:var(--base-opacity,0.7)}
+    10%{opacity:0.3}20%{opacity:var(--base-opacity,0.7)}
+    30%{opacity:0.5}40%{opacity:var(--base-opacity,0.7)}
+    70%{opacity:0.4}80%{opacity:var(--base-opacity,0.7)}
+    90%{opacity:0.35}
+  }
+  @keyframes hang{
+    0%,100%{transform:var(--hang-base,rotate(2deg)) translateY(0)}
+    50%{transform:var(--hang-base,rotate(2deg)) translateY(3px)}
+  }
+  @keyframes smolder{
+    0%,100%{box-shadow:inset 0 0 5px rgba(255,60,0,0.2)}
+    50%{box-shadow:inset 0 0 15px rgba(255,60,0,0.4),0 0 8px rgba(255,60,0,0.15)}
+  }
+  @keyframes drift{
+    0%,100%{transform:translate(0,0) rotate(0)}
+    33%{transform:translate(2px,-1px) rotate(0.5deg)}
+    66%{transform:translate(-1px,2px) rotate(-0.3deg)}
+  }
+
+  /* ── War-torn effects ── */
+  .war-torn{filter:sepia(0.15) contrast(1.1) brightness(0.8)}
+  .war-torn .el-card.survivor{
+    animation:flicker 3s ease-in-out infinite,smolder 4s ease-in-out infinite;
+    border-color:rgba(255,60,0,0.3) !important;
+  }
+  .war-torn .el-card.survivor.barely-alive{
+    animation:flicker 1.5s ease-in-out infinite,hang 2s ease-in-out infinite,smolder 2s ease-in-out infinite;
+    opacity:0.5;
+  }
+  .war-torn .el-card.survivor.damaged{
+    animation:drift 5s ease-in-out infinite,smolder 3s ease-in-out infinite;
+  }
+  .el-card.survivor::after{
+    content:'';position:absolute;top:0;left:0;right:0;bottom:0;
+    pointer-events:none;border-radius:inherit;
+    background:linear-gradient(var(--crack-angle,135deg),
+      transparent 30%,rgba(255,60,0,0.1) 45%,
+      transparent 48%,transparent 52%,
+      rgba(0,0,0,0.3) 55%,transparent 70%);
+  }
+  .el-card.survivor.barely-alive::before{
+    content:'';position:absolute;inset:-1px;border-radius:inherit;
+    border:1px dashed rgba(255,60,0,0.3);pointer-events:none;
+  }
+
+  /* ── Smoke Particles ── */
+  .smoke-particle{
+    position:absolute;width:4px;height:4px;
+    border-radius:50%;pointer-events:none;
+    background:radial-gradient(circle,rgba(120,120,120,0.4),transparent);
+    animation:smokeRise var(--smoke-dur,4s) ease-out infinite;
+    animation-delay:var(--smoke-delay,0s);
+  }
+  @keyframes smokeRise{
+    0%{opacity:0.5;transform:translate(0,0) scale(1)}
+    100%{opacity:0;transform:translate(var(--smoke-dx,10px),-60px) scale(3)}
+  }
+  .ember{
+    position:absolute;width:2px;height:2px;
+    background:var(--orange);border-radius:50%;pointer-events:none;
+    animation:emberFloat var(--ember-dur,3s) ease-out infinite;
+    animation-delay:var(--ember-delay,0s);
+    box-shadow:0 0 4px var(--orange);
+  }
+  @keyframes emberFloat{
+    0%{opacity:1;transform:translate(0,0)}
+    100%{opacity:0;transform:translate(var(--ember-dx,20px),var(--ember-dy,-80px))}
+  }
+
+  /* ── Battle Log ── */
+  #battle-log{
+    position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+    width:500px;max-width:90vw;background:rgba(10,10,15,0.95);
+    border:1px solid #222;border-bottom:none;border-radius:6px 6px 0 0;
+    max-height:120px;overflow-y:auto;padding:0.5rem;
+    font-size:0.65rem;line-height:1.5;z-index:100;display:none;
+  }
+  #battle-log.visible{display:block}
+  #battle-log .log-entry{padding:1px 4px;border-bottom:1px solid #111}
+  #battle-log .log-entry .atk{color:var(--orange)}
+  #battle-log .log-entry .dmg{color:var(--red)}
+  #battle-log .log-entry .ko{color:#ff4444;font-weight:bold}
+  #battle-log .log-entry .win{color:var(--gold);font-weight:bold}
+
+  /* ── Victory Banner ── */
+  #victory-banner{
+    display:none;position:fixed;top:50%;left:50%;
+    transform:translate(-50%,-50%) scale(0);
+    background:rgba(10,10,15,0.95);border:2px solid var(--gold);
+    padding:2rem 3rem;border-radius:8px;z-index:200;
+    text-align:center;box-shadow:0 0 60px rgba(255,170,0,0.3);
+  }
+  #victory-banner.visible{display:block;animation:bannerIn 0.6s ease forwards}
+  @keyframes bannerIn{
+    0%{transform:translate(-50%,-50%) scale(0) rotate(-10deg)}
+    70%{transform:translate(-50%,-50%) scale(1.1) rotate(2deg)}
+    100%{transform:translate(-50%,-50%) scale(1) rotate(0)}
+  }
+  #victory-banner h2{
+    font-size:1.8rem;text-transform:uppercase;letter-spacing:0.2em;
+    color:var(--gold);margin-bottom:0.5rem;
+  }
+  #victory-banner .winner-url{
+    color:var(--text);font-size:0.8rem;margin-bottom:1rem;
+    max-width:350px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
+  #victory-banner .stats{color:var(--dim);font-size:0.75rem;line-height:1.8}
+  #victory-banner button{
+    margin-top:1.5rem;padding:0.6rem 2rem;font-family:inherit;
+    background:var(--bg3);color:var(--text);border:1px solid #444;
+    border-radius:4px;cursor:pointer;font-size:0.85rem;
+  }
+  #victory-banner button:hover{border-color:var(--gold)}
+
+  .scan-line{
+    position:absolute;top:0;left:0;right:0;height:2px;
+    background:linear-gradient(90deg,transparent,var(--cyan),transparent);
+    z-index:10;pointer-events:none;animation:scanDown 1.5s ease-in-out;opacity:0;
+  }
+  .army-right .scan-line{
+    background:linear-gradient(90deg,transparent,var(--red),transparent);
+  }
+  @keyframes scanDown{0%{top:0;opacity:0.8}100%{top:100%;opacity:0}}
+
+  /* ── Expand Hints (post-battle) ── */
+  .expand-hint{
+    display:none;position:absolute;inset:0;z-index:15;
+    cursor:pointer;background:transparent;
+    transition:background 0.2s;
+  }
+  .expand-hint:hover{background:rgba(255,170,0,0.06)}
+  .expand-hint .expand-icon{
+    position:absolute;top:50%;left:50%;
+    transform:translate(-50%,-50%);
+    padding:8px 16px;background:rgba(10,10,15,0.85);
+    border:1px solid #444;border-radius:4px;
+    font-size:0.7rem;color:var(--dim);letter-spacing:0.1em;
+    text-transform:uppercase;pointer-events:none;
+    opacity:0;transition:opacity 0.2s;
+  }
+  .expand-hint:hover .expand-icon{opacity:1}
+  .battle-over .expand-hint{display:block}
+
+  /* ── Fullscreen Viewer ── */
+  #fullscreen-viewer{
+    display:none;position:fixed;inset:0;z-index:300;
+    background:var(--bg);flex-direction:column;
+  }
+  #fullscreen-viewer.visible{display:flex}
+  #fullscreen-viewer .fs-header{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:0.6rem 1.5rem;background:var(--bg2);
+    border-bottom:1px solid #222;flex-shrink:0;
+  }
+  #fullscreen-viewer .fs-title{
+    font-size:0.8rem;color:var(--gold);letter-spacing:0.1em;
+    text-transform:uppercase;
+  }
+  #fullscreen-viewer .fs-close{
+    padding:5px 14px;font-family:inherit;font-size:0.75rem;
+    background:var(--bg3);color:var(--text);border:1px solid #444;
+    border-radius:3px;cursor:pointer;letter-spacing:0.1em;
+  }
+  #fullscreen-viewer .fs-close:hover{border-color:var(--gold)}
+  #fullscreen-viewer .fs-body{
+    flex:1;overflow:hidden;position:relative;
+  }
+  /* Cards fullscreen */
+  #fullscreen-viewer .fs-body .fs-cards{
+    width:100%;height:100%;padding:1rem;overflow-y:auto;
+    display:flex;flex-wrap:wrap;align-content:flex-start;gap:6px;
+  }
+  /* Preview fullscreen: iframe at native size, scrollable */
+  #fullscreen-viewer .fs-body iframe{
+    width:100%;height:100%;border:none;background:#fff;
+  }
+  /* Smoke/vignette in fullscreen */
+  #fullscreen-viewer .fs-body .vignette{
+    position:absolute;inset:0;z-index:8;pointer-events:none;
+    background:radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,0.4) 100%);
+  }
+  #fullscreen-viewer .fs-body .fs-smoke{
+    position:absolute;inset:0;z-index:9;pointer-events:none;overflow:hidden;
+  }
+
+  ::-webkit-scrollbar{width:4px}
+  ::-webkit-scrollbar-track{background:var(--bg)}
+  ::-webkit-scrollbar-thumb{background:#333;border-radius:2px}
+</style>
+</head>
+<body>
+
+<!-- ── Input Screen ── -->
+<div id="input-screen">
+  <h1>Website Arena</h1>
+  <p class="subtitle">Two websites enter. One survives.</p>
+  <div class="url-inputs">
+    <div class="url-group">
+      <label>Challenger 1</label>
+      <input type="url" id="url1" placeholder="https://example.com" value="">
+    </div>
+    <span class="vs-text">VS</span>
+    <div class="url-group">
+      <label>Challenger 2</label>
+      <input type="url" id="url2" placeholder="https://example.org" value="">
+    </div>
+  </div>
+  <button id="fight-btn" onclick="startBattle()">Fight!</button>
+  <p class="error-msg" id="error-msg"></p>
+  <p class="proxy-note">
+    Sites are fetched via a CORS proxy. Some sites with strict security headers
+    may not load. Works best with static/content sites.
+  </p>
+</div>
+
+<!-- ── Loading Screen ── -->
+<div id="loading-screen">
+  <div class="loader"></div>
+  <p id="loading-text">Fetching combatants...</p>
+</div>
+
+<!-- ── Arena ── -->
+<div id="arena">
+  <div class="arena-header">
+    <div class="site-name" id="site1-name"></div>
+    <div class="round-info" id="round-info">Scanning...</div>
+    <div class="site-name" id="site2-name"></div>
+  </div>
+  <div class="hp-bars">
+    <div class="hp-bar-wrap">
+      <div class="hp-bar-label"><span>ARMY HP</span><span class="hp-val" id="hp1-val">100%</span></div>
+      <div class="hp-bar"><div class="hp-bar-fill" id="hp1-bar" style="width:100%"></div></div>
+    </div>
+    <div class="hp-bar-wrap">
+      <div class="hp-bar-label"><span>ARMY HP</span><span class="hp-val" id="hp2-val">100%</span></div>
+      <div class="hp-bar"><div class="hp-bar-fill" id="hp2-bar" style="width:100%"></div></div>
+    </div>
+  </div>
+  <div class="view-toggle">
+    <button class="active" onclick="switchView('cards')" id="btn-cards">Battle Cards</button>
+    <button onclick="switchView('preview')" id="btn-preview">Live Preview</button>
+    <button onclick="switchView('split')" id="btn-split">Split View</button>
+  </div>
+
+  <!-- Cards View -->
+  <div class="battlefield" id="cards-view">
+    <div class="army army-left" id="army-left">
+      <div class="expand-hint" onclick="expandPanel('cards-left')"><span class="expand-icon">Click to expand</span></div>
+    </div>
+    <div class="battlefield-divider"></div>
+    <div class="army army-right" id="army-right">
+      <div class="expand-hint" onclick="expandPanel('cards-right')"><span class="expand-icon">Click to expand</span></div>
+    </div>
+  </div>
+
+  <!-- Preview View -->
+  <div class="preview-panel" id="preview-view">
+    <div class="preview-side" id="preview-side-1">
+      <div class="preview-label" id="preview-label-1">Challenger 1</div>
+      <iframe id="preview-frame-1" sandbox="allow-same-origin" title="Challenger 1"></iframe>
+      <div class="vignette"></div>
+      <div class="smoke-overlay" id="smoke-overlay-1"></div>
+      <div class="expand-hint" onclick="expandPanel('preview-1')"><span class="expand-icon">Click to expand</span></div>
+    </div>
+    <div class="preview-divider"></div>
+    <div class="preview-side" id="preview-side-2">
+      <div class="preview-label" id="preview-label-2">Challenger 2</div>
+      <iframe id="preview-frame-2" sandbox="allow-same-origin" title="Challenger 2"></iframe>
+      <div class="vignette"></div>
+      <div class="smoke-overlay" id="smoke-overlay-2"></div>
+      <div class="expand-hint" onclick="expandPanel('preview-2')"><span class="expand-icon">Click to expand</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Fullscreen Viewer ── -->
+<div id="fullscreen-viewer">
+  <div class="fs-header">
+    <span class="fs-title" id="fs-title"></span>
+    <button class="fs-close" onclick="closeFullscreen()">ESC &times; Close</button>
+  </div>
+  <div class="fs-body" id="fs-body"></div>
+</div>
+
+<!-- ── Battle Log ── -->
+<div id="battle-log"></div>
+
+<!-- ── Victory Banner ── -->
+<div id="victory-banner">
+  <h2 id="victory-title">Victory!</h2>
+  <p class="winner-url" id="winner-url"></p>
+  <div class="stats" id="victory-stats"></div>
+  <button onclick="location.reload()">Battle Again</button>
+</div>
+
+<script>
+// ── Element Classification ──
+const ELEMENT_ROLES = {
+  h1:{role:'boss',hp:120,atk:30,def:22},
+  h2:{role:'commander',hp:95,atk:26,def:18},
+  h3:{role:'officer',hp:75,atk:22,def:15},
+  h4:{role:'officer',hp:65,atk:20,def:14},
+  h5:{role:'officer',hp:55,atk:18,def:12},
+  h6:{role:'officer',hp:48,atk:16,def:11},
+  nav:{role:'shield',hp:80,atk:12,def:32},
+  button:{role:'striker',hp:55,atk:36,def:10},
+  a:{role:'scout',hp:35,atk:22,def:6},
+  img:{role:'ranger',hp:60,atk:32,def:8},
+  svg:{role:'ranger',hp:55,atk:28,def:8},
+  video:{role:'artillery',hp:90,atk:42,def:6},
+  audio:{role:'artillery',hp:75,atk:38,def:5},
+  canvas:{role:'artillery',hp:85,atk:40,def:7},
+  form:{role:'engineer',hp:75,atk:16,def:28},
+  input:{role:'engineer',hp:42,atk:20,def:16},
+  select:{role:'engineer',hp:40,atk:18,def:15},
+  textarea:{role:'engineer',hp:50,atk:18,def:18},
+  table:{role:'fortress',hp:100,atk:12,def:38},
+  thead:{role:'fortress',hp:60,atk:8,def:25},
+  tbody:{role:'fortress',hp:70,atk:10,def:28},
+  tr:{role:'fortress',hp:30,atk:6,def:15},
+  td:{role:'infantry',hp:22,atk:8,def:8},
+  th:{role:'officer',hp:35,atk:12,def:12},
+  ul:{role:'squad',hp:55,atk:22,def:18},
+  ol:{role:'squad',hp:55,atk:22,def:18},
+  li:{role:'squad',hp:28,atk:14,def:10},
+  dl:{role:'squad',hp:50,atk:20,def:16},
+  div:{role:'infantry',hp:40,atk:14,def:12},
+  p:{role:'civilian',hp:30,atk:10,def:8},
+  span:{role:'messenger',hp:18,atk:7,def:4},
+  em:{role:'messenger',hp:16,atk:8,def:3},
+  strong:{role:'striker',hp:25,atk:15,def:5},
+  b:{role:'striker',hp:22,atk:14,def:5},
+  i:{role:'messenger',hp:16,atk:7,def:3},
+  section:{role:'barracks',hp:70,atk:18,def:22},
+  article:{role:'barracks',hp:68,atk:18,def:20},
+  aside:{role:'barracks',hp:55,atk:14,def:18},
+  main:{role:'vanguard',hp:80,atk:20,def:24},
+  header:{role:'vanguard',hp:65,atk:22,def:20},
+  footer:{role:'rearguard',hp:55,atk:12,def:24},
+  figure:{role:'ranger',hp:50,atk:24,def:10},
+  figcaption:{role:'civilian',hp:22,atk:8,def:6},
+  blockquote:{role:'civilian',hp:35,atk:12,def:12},
+  pre:{role:'engineer',hp:45,atk:16,def:14},
+  code:{role:'engineer',hp:35,atk:18,def:10},
+  label:{role:'messenger',hp:20,atk:8,def:5},
+  details:{role:'engineer',hp:40,atk:14,def:16},
+  summary:{role:'scout',hp:30,atk:16,def:8},
+  iframe:{role:'artillery',hp:95,atk:44,def:4},
+  hr:{role:'infantry',hp:15,atk:5,def:10},
+  br:{role:'messenger',hp:5,atk:1,def:1},
+};
+const DEFAULT_STATS = {role:'infantry',hp:25,atk:10,def:8};
+
+// ── CSS injected into preview iframes ──
+const ARENA_IFRAME_CSS = `
+  [data-arena-id] {
+    transition: filter 0.5s ease, opacity 0.5s ease, transform 0.5s ease, box-shadow 0.5s ease !important;
+    position: relative;
+  }
+  /* Hit flash */
+  @keyframes arenaHit {
+    0%   { filter: brightness(1) !important; }
+    25%  { filter: brightness(0.2) saturate(3) hue-rotate(-20deg) !important;
+           box-shadow: inset 0 0 30px rgba(255,0,0,0.6), 0 0 15px rgba(255,0,0,0.3) !important; }
+    100% { filter: brightness(1) !important; }
+  }
+  [data-arena-id].arena-hit {
+    animation: arenaHit 0.2s ease !important;
+  }
+  /* Damage tiers */
+  [data-arena-id].arena-dmg-1 {
+    box-shadow: inset 0 0 5px rgba(255,60,0,0.15) !important;
+  }
+  [data-arena-id].arena-dmg-2 {
+    box-shadow: inset 0 0 12px rgba(255,60,0,0.25) !important;
+    filter: brightness(0.9) sepia(0.1) !important;
+  }
+  [data-arena-id].arena-dmg-3 {
+    box-shadow: inset 0 0 20px rgba(255,60,0,0.35) !important;
+    filter: brightness(0.75) sepia(0.2) !important;
+  }
+  [data-arena-id].arena-dmg-4 {
+    box-shadow: inset 0 0 30px rgba(255,30,0,0.4) !important;
+    filter: brightness(0.6) sepia(0.35) saturate(1.3) !important;
+    opacity: 0.8 !important;
+  }
+  /* Defeat */
+  @keyframes arenaDefeat {
+    0%   { opacity: 1; transform: scale(1); filter: brightness(1); }
+    15%  { filter: brightness(3) saturate(0) !important; }
+    30%  { filter: brightness(0.2) sepia(1) saturate(3) !important; opacity: 0.8; }
+    50%  { transform: scale(0.97) rotate(0.8deg); opacity: 0.5;
+           filter: grayscale(0.8) brightness(0.4) !important; }
+    75%  { transform: scale(0.94) rotate(-0.4deg) translateY(2px); opacity: 0.15;
+           filter: grayscale(1) brightness(0.2) !important; }
+    100% { transform: scale(0.9) translateY(4px); opacity: 0;
+           filter: grayscale(1) brightness(0) !important; }
+  }
+  [data-arena-id].arena-defeated {
+    animation: arenaDefeat 0.5s ease forwards !important;
+    pointer-events: none !important;
+  }
+  /* Scar: ghost of a defeated element */
+  [data-arena-id].arena-scar {
+    opacity: 0.06 !important;
+    filter: grayscale(1) brightness(0.3) !important;
+    animation: none !important;
+    pointer-events: none !important;
+    outline: 1px dashed rgba(255,60,0,0.08) !important;
+    outline-offset: -1px;
+  }
+  /* Survivor flicker */
+  @keyframes arenaSurvivorFlicker {
+    0%,100% { opacity: var(--arena-opacity, 0.85); }
+    8%  { opacity: 0.5;  }  22% { opacity: var(--arena-opacity, 0.85); }
+    35% { opacity: 0.4;  }  48% { opacity: var(--arena-opacity, 0.85); }
+    60% { opacity: 0.55; }  75% { opacity: var(--arena-opacity, 0.85); }
+    88% { opacity: 0.45; }
+  }
+  @keyframes arenaSmolder {
+    0%,100% { box-shadow: inset 0 0 8px rgba(255,60,0,0.1); }
+    50%     { box-shadow: inset 0 0 25px rgba(255,60,0,0.3), 0 0 12px rgba(255,60,0,0.1); }
+  }
+  @keyframes arenaDangle {
+    0%,100% { transform: rotate(var(--arena-rot, 0.5deg)) translateY(0); }
+    50%     { transform: rotate(var(--arena-rot, 0.5deg)) translateY(2px); }
+  }
+  [data-arena-id].arena-survivor {
+    animation: arenaSmolder 4s ease-in-out infinite !important;
+    outline: 1px solid rgba(255,60,0,0.12) !important;
+    outline-offset: -1px;
+  }
+  [data-arena-id].arena-survivor.arena-barely-alive {
+    animation: arenaSurvivorFlicker 2.5s ease-in-out infinite,
+               arenaSmolder 2s ease-in-out infinite,
+               arenaDangle 3s ease-in-out infinite !important;
+  }
+  [data-arena-id].arena-survivor.arena-wounded {
+    animation: arenaSmolder 3s ease-in-out infinite !important;
+    filter: brightness(0.85) sepia(0.1) !important;
+  }
+  /* Level-up scaling in preview */
+  @keyframes arenaLevelUp {
+    0%   { filter: brightness(1); }
+    40%  { filter: brightness(2.5) saturate(0) !important; }
+    100% { filter: brightness(1); }
+  }
+  [data-arena-id].arena-lv2 { transform: scale(1.06) !important; box-shadow: 0 0 8px rgba(255,170,0,0.2) !important; z-index:2; }
+  [data-arena-id].arena-lv3 { transform: scale(1.12) !important; box-shadow: 0 0 14px rgba(255,170,0,0.3) !important; z-index:3; }
+  [data-arena-id].arena-lv4 { transform: scale(1.18) !important; box-shadow: 0 0 20px rgba(255,170,0,0.4) !important; z-index:4; }
+  [data-arena-id].arena-lv5 { transform: scale(1.25) !important; box-shadow: 0 0 28px rgba(255,170,0,0.5) !important; z-index:5;
+    outline: 2px solid rgba(255,170,0,0.5) !important; }
+  [data-arena-id].arena-level-up { animation: arenaLevelUp 0.3s ease !important; }
+  /* Critical hit flash */
+  @keyframes arenaCrit {
+    0%   { filter: brightness(1); }
+    15%  { filter: brightness(0) !important; box-shadow: inset 0 0 50px rgba(255,255,0,0.8), 0 0 30px rgba(255,255,0,0.4) !important; }
+    40%  { filter: brightness(0.1) saturate(5) hue-rotate(-40deg) !important; }
+    100% { filter: brightness(1); }
+  }
+  [data-arena-id].arena-crit { animation: arenaCrit 0.35s ease !important; }
+  /* War-torn page */
+  body.arena-war-torn {
+    filter: sepia(0.12) contrast(1.05) brightness(0.7) !important;
+  }
+  body.arena-war-torn::after {
+    content: '';
+    position: fixed; inset: 0;
+    background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.5) 100%);
+    pointer-events: none; z-index: 999999;
+  }
+`;
+
+// ── Proxy Config ──
+const PROXIES = [
+  url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+  url => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
+];
+
+async function fetchSite(url) {
+  let lastErr;
+  for (const proxy of PROXIES) {
+    try {
+      const resp = await fetch(proxy(url), {signal: AbortSignal.timeout(15000)});
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      return await resp.text();
+    } catch(e) { lastErr = e; }
+  }
+  throw new Error(`Could not fetch site: ${lastErr?.message}`);
 }
 
-body {
-	color: white;
-	background-color: black;
-	overflow: hidden;
-	touch-action: none;
+// ── Parse & Extract Elements (also tags DOM for preview) ──
+function extractElements(html, baseUrl) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+  const elements = [];
+  const SKIP = new Set(['html','head','body','meta','link','style','script','noscript',
+    'title','template','slot','source','track','wbr','col','colgroup','data',
+    'datalist','dialog','embed','map','area','object','param','picture','portal','base']);
+
+  // Remove all script tags for safety
+  doc.querySelectorAll('script,noscript').forEach(s => s.remove());
+  // Remove iframes (nested iframes are trouble)
+  doc.querySelectorAll('iframe').forEach(f => f.remove());
+  // Remove meta CSP tags
+  doc.querySelectorAll('meta[http-equiv="Content-Security-Policy"]').forEach(m => m.remove());
+
+  function walk(node) {
+    if (node.nodeType !== 1) return;
+    const tag = node.tagName.toLowerCase();
+    if (SKIP.has(tag)) {
+      if (tag === 'html' || tag === 'head' || tag === 'body') {
+        for (const child of node.children) walk(child);
+      }
+      return;
+    }
+    const text = (node.textContent || '').trim().slice(0, 80);
+    const childCount = node.children.length;
+    const attrCount = node.attributes.length;
+    const hasClasses = node.classList.length > 0;
+    const id = 'a' + Math.random().toString(36).slice(2, 8);
+
+    // Tag the actual DOM node so we can find it in the preview iframe
+    node.setAttribute('data-arena-id', id);
+
+    elements.push({tag, text, childCount, attrCount, hasClasses, id});
+
+    if (elements.length < 200) {
+      for (const child of node.children) walk(child);
+    }
+  }
+
+  walk(doc.documentElement);
+
+  // Inject <base> for relative URLs
+  let baseTag = doc.querySelector('base');
+  if (!baseTag) {
+    baseTag = doc.createElement('base');
+    doc.head.prepend(baseTag);
+  }
+  baseTag.href = baseUrl;
+
+  // Inject our battle CSS
+  const styleTag = doc.createElement('style');
+  styleTag.textContent = ARENA_IFRAME_CSS;
+  doc.head.appendChild(styleTag);
+
+  // Serialize the modified HTML
+  const modifiedHtml = doc.documentElement.outerHTML;
+
+  // Cap at 150 elements for performance
+  if (elements.length > 150) {
+    elements.sort((a,b) => {
+      const sa = ELEMENT_ROLES[a.tag] || DEFAULT_STATS;
+      const sb = ELEMENT_ROLES[b.tag] || DEFAULT_STATS;
+      return (sb.hp + sb.atk) - (sa.hp + sa.atk);
+    });
+    elements.length = 150;
+  }
+  return { elements, modifiedHtml };
 }
 
-#canvas {
-	display: block;
+function calcStats(el) {
+  const base = ELEMENT_ROLES[el.tag] || DEFAULT_STATS;
+  let hp = base.hp, atk = base.atk, def = base.def;
+  if (el.text.length > 0) hp += Math.min(el.text.length * 0.3, 20);
+  if (el.childCount > 0) def += Math.min(el.childCount * 1.5, 15);
+  if (el.attrCount > 2) atk += Math.min(el.attrCount * 1, 8);
+  if (el.hasClasses) { hp += 5; def += 3; }
+  return { ...el, role: base.role, hp: Math.round(hp), maxHp: Math.round(hp),
+           atk: Math.round(atk), def: Math.round(def), alive: true,
+           xp: 0, level: 1, kills: 0, streak: 0, crits: 0 };
 }
 
-#canvas:focus {
-	outline: none;
+// ── DOM helpers ──
+const $ = id => document.getElementById(id);
+let currentView = 'cards';
+
+function switchView(view) {
+  currentView = view;
+  $('btn-cards').classList.toggle('active', view === 'cards');
+  $('btn-preview').classList.toggle('active', view === 'preview');
+  $('btn-split').classList.toggle('active', view === 'split');
+
+  const cards = $('cards-view');
+  const preview = $('preview-view');
+
+  // Reset styles from previous view
+  cards.style.maxHeight = '';
+  cards.querySelector('.army-left').style.maxHeight = '';
+  cards.querySelector('.army-right').style.maxHeight = '';
+  preview.classList.remove('split-mode');
+
+  if (view === 'cards') {
+    cards.classList.remove('hidden'); cards.style.display = 'flex';
+    preview.classList.remove('visible'); preview.style.display = 'none';
+  } else if (view === 'preview') {
+    cards.classList.add('hidden'); cards.style.display = 'none';
+    preview.classList.add('visible'); preview.style.display = 'flex';
+  } else { // split
+    cards.classList.remove('hidden'); cards.style.display = 'flex';
+    cards.style.maxHeight = '30vh';
+    cards.querySelector('.army-left').style.maxHeight = '30vh';
+    cards.querySelector('.army-right').style.maxHeight = '30vh';
+    preview.classList.add('visible','split-mode'); preview.style.display = 'flex';
+  }
 }
 
-#status, #status-splash, #status-progress {
-	position: absolute;
-	left: 0;
-	right: 0;
+// ── Preview iframe helpers ──
+function getPreviewDoc(frameId) {
+  try {
+    return $(frameId)?.contentDocument;
+  } catch { return null; }
 }
 
-#status, #status-splash {
-	top: 0;
-	bottom: 0;
+function getPreviewEl(unit, side) {
+  const doc = getPreviewDoc(side === 1 ? 'preview-frame-1' : 'preview-frame-2');
+  if (!doc) return null;
+  return doc.querySelector(`[data-arena-id="${unit.id}"]`);
 }
 
-#status {
-	background-color: #242424;
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
-	align-items: center;
-	visibility: hidden;
+function syncPreviewHit(unit, side) {
+  const el = getPreviewEl(unit, side);
+  if (!el) return;
+  el.classList.remove('arena-hit');
+  void el.offsetWidth; // force reflow
+  el.classList.add('arena-hit');
+  setTimeout(() => el.classList.remove('arena-hit'), 200);
 }
 
-#status-splash {
-	max-height: 100%;
-	max-width: 100%;
-	margin: auto;
+function syncPreviewDamage(unit, side) {
+  const el = getPreviewEl(unit, side);
+  if (!el) return;
+  const hpPct = unit.hp / unit.maxHp;
+  // Remove old damage classes
+  el.classList.remove('arena-dmg-1','arena-dmg-2','arena-dmg-3','arena-dmg-4');
+  if (hpPct < 0.25)      el.classList.add('arena-dmg-4');
+  else if (hpPct < 0.5)   el.classList.add('arena-dmg-3');
+  else if (hpPct < 0.75)  el.classList.add('arena-dmg-2');
+  else if (hpPct < 0.95)  el.classList.add('arena-dmg-1');
 }
 
-#status-splash.show-image--false {
-	display: none;
+function syncPreviewDefeat(unit, side) {
+  const el = getPreviewEl(unit, side);
+  if (!el) return;
+  el.classList.remove('arena-dmg-1','arena-dmg-2','arena-dmg-3','arena-dmg-4','arena-hit');
+  el.classList.add('arena-defeated');
+  // After defeat animation, leave a scar
+  setTimeout(() => {
+    el.classList.remove('arena-defeated');
+    el.classList.add('arena-scar');
+  }, 600);
 }
 
-#status-splash.fullsize--true {
-	height: 100%;
-	width: 100%;
-	object-fit: contain;
+function syncPreviewWarTorn(army, side) {
+  const doc = getPreviewDoc(side === 1 ? 'preview-frame-1' : 'preview-frame-2');
+  if (!doc) return;
+  doc.body.classList.add('arena-war-torn');
+
+  for (const unit of army) {
+    const el = doc.querySelector(`[data-arena-id="${unit.id}"]`);
+    if (!el || !unit.alive) continue;
+    const hpPct = unit.hp / unit.maxHp;
+    el.classList.remove('arena-dmg-1','arena-dmg-2','arena-dmg-3','arena-dmg-4');
+    el.classList.add('arena-survivor');
+
+    if (hpPct < 0.25) {
+      el.classList.add('arena-barely-alive');
+      el.style.setProperty('--arena-opacity', '0.5');
+      el.style.setProperty('--arena-rot', (Math.random()*4-2).toFixed(1)+'deg');
+    } else if (hpPct < 0.6) {
+      el.classList.add('arena-wounded');
+      el.style.setProperty('--arena-opacity', '0.7');
+    }
+  }
 }
 
-#status-splash.use-filter--false {
-	image-rendering: pixelated;
+// ── XP / Level System ──
+const XP_PER_LEVEL = 30; // XP needed per level
+const MAX_LEVEL = 5;
+
+function awardXP(unit, amount) {
+  if (unit.level >= MAX_LEVEL) return false;
+  unit.xp += amount;
+  const needed = XP_PER_LEVEL * unit.level;
+  if (unit.xp >= needed) {
+    unit.xp -= needed;
+    unit.level++;
+    // Stat boosts on level up
+    unit.atk += 4;
+    unit.def += 3;
+    const hpGain = Math.round(unit.maxHp * 0.15);
+    unit.maxHp += hpGain;
+    unit.hp += hpGain; // heal on level up
+    applyLevelVisuals(unit);
+    return true; // leveled up
+  }
+  return false;
 }
 
-#status-progress, #status-notice {
-	display: none;
+function applyLevelVisuals(unit) {
+  // Card view
+  const card = getCard(unit);
+  if (card) {
+    card.classList.remove('lv2','lv3','lv4','lv5');
+    if (unit.level >= 2) card.classList.add('leveled', `lv${Math.min(unit.level, 5)}`);
+    card.querySelector('.el-level').textContent = `Lv${unit.level}`;
+    // Brief flash
+    card.classList.add('level-up');
+    setTimeout(() => card.classList.remove('level-up'), 400);
+  }
+  // Preview view
+  const el = getPreviewEl(unit, unit.side);
+  if (el) {
+    el.classList.remove('arena-lv2','arena-lv3','arena-lv4','arena-lv5');
+    if (unit.level >= 2) el.classList.add(`arena-lv${Math.min(unit.level, 5)}`);
+    el.classList.add('arena-level-up');
+    setTimeout(() => el.classList.remove('arena-level-up'), 300);
+  }
 }
 
-#status-progress {
-	bottom: 10%;
-	width: 50%;
-	margin: 0 auto;
+function applyStreakVisuals(unit) {
+  const card = getCard(unit);
+  if (card) {
+    if (unit.streak >= 2) {
+      card.classList.add('on-streak');
+      card.querySelector('.streak-badge').textContent = unit.streak;
+    } else {
+      card.classList.remove('on-streak');
+    }
+  }
 }
 
-#status-notice {
-	background-color: #5b3943;
-	border-radius: 0.5rem;
-	border: 1px solid #9b3943;
-	color: #e0e0e0;
-	font-family: 'Noto Sans', 'Droid Sans', Arial, sans-serif;
-	line-height: 1.3;
-	margin: 0 2rem;
-	overflow: hidden;
-	padding: 1rem;
-	text-align: center;
-	z-index: 1;
+function syncPreviewCrit(unit, side) {
+  const el = getPreviewEl(unit, side);
+  if (!el) return;
+  el.classList.remove('arena-crit');
+  void el.offsetWidth;
+  el.classList.add('arena-crit');
+  setTimeout(() => el.classList.remove('arena-crit'), 350);
 }
-		</style>
-		<link id="-gd-engine-icon" rel="icon" type="image/png" href="index.icon.png" />
-<link rel="apple-touch-icon" href="index.apple-touch-icon.png"/>
 
-	</head>
-	<body>
-		<canvas id="canvas">
-			Your browser does not support the canvas tag.
-		</canvas>
+// ── Battle Engine ──
+let battleState = null;
 
-		<noscript>
-			Your browser does not support JavaScript.
-		</noscript>
+async function startBattle() {
+  const url1 = $('url1').value.trim();
+  const url2 = $('url2').value.trim();
+  if (!url1 || !url2) return showError('Enter both URLs');
+  try { new URL(url1); new URL(url2); } catch { return showError('Enter valid URLs (include https://)'); }
 
-		<div id="status">
-			<img id="status-splash" class="show-image--true fullsize--true use-filter--true" src="index.png" alt="">
-			<progress id="status-progress"></progress>
-			<div id="status-notice"></div>
-		</div>
+  showError('');
+  $('fight-btn').disabled = true;
+  $('input-screen').style.display = 'none';
+  $('loading-screen').style.display = 'flex';
 
-		<script src="index.js"></script>
-		<script>
-const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":false,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":392116,"index.wasm":38034280},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
-const GODOT_THREADS_ENABLED = false;
-const engine = new Engine(GODOT_CONFIG);
+  try {
+    $('loading-text').textContent = 'Fetching challenger 1...';
+    const html1 = await fetchSite(url1);
+    $('loading-text').textContent = 'Fetching challenger 2...';
+    const html2 = await fetchSite(url2);
 
-(function () {
-	const statusOverlay = document.getElementById('status');
-	const statusProgress = document.getElementById('status-progress');
-	const statusNotice = document.getElementById('status-notice');
+    $('loading-text').textContent = 'Extracting elements...';
+    await sleep(300);
+    const result1 = extractElements(html1, url1);
+    const result2 = extractElements(html2, url2);
+    const raw1 = result1.elements;
+    const raw2 = result2.elements;
 
-	let initializing = true;
-	let statusMode = '';
+    if (raw1.length < 3 || raw2.length < 3) {
+      throw new Error('One or both sites returned too few elements to battle.');
+    }
 
-	function setStatusMode(mode) {
-		if (statusMode === mode || !initializing) {
-			return;
-		}
-		if (mode === 'hidden') {
-			statusOverlay.remove();
-			initializing = false;
-			return;
-		}
-		statusOverlay.style.visibility = 'visible';
-		statusProgress.style.display = mode === 'progress' ? 'block' : 'none';
-		statusNotice.style.display = mode === 'notice' ? 'block' : 'none';
-		statusMode = mode;
-	}
+    const army1 = raw1.map(calcStats);
+    const army2 = raw2.map(calcStats);
 
-	function setStatusNotice(text) {
-		while (statusNotice.lastChild) {
-			statusNotice.removeChild(statusNotice.lastChild);
-		}
-		const lines = text.split('\n');
-		lines.forEach((line) => {
-			statusNotice.appendChild(document.createTextNode(line));
-			statusNotice.appendChild(document.createElement('br'));
-		});
-	}
+    // Determine which side each unit is on (for preview sync)
+    army1.forEach(u => u.side = 1);
+    army2.forEach(u => u.side = 2);
 
-	function displayFailureNotice(err) {
-		console.error(err);
-		if (err instanceof Error) {
-			setStatusNotice(err.message);
-		} else if (typeof err === 'string') {
-			setStatusNotice(err);
-		} else {
-			setStatusNotice('An unknown error occurred.');
-		}
-		setStatusMode('notice');
-		initializing = false;
-	}
+    $('loading-screen').style.display = 'none';
+    $('arena').style.display = 'flex';
+    $('site1-name').textContent = url1;
+    $('site2-name').textContent = url2;
+    $('preview-label-1').textContent = new URL(url1).hostname;
+    $('preview-label-2').textContent = new URL(url2).hostname;
 
-	const missing = Engine.getMissingFeatures({
-		threads: GODOT_THREADS_ENABLED,
-	});
+    battleState = { army1, army2, url1, url2, round: 0, totalRounds: 0,
+                    html1: result1.modifiedHtml, html2: result2.modifiedHtml };
 
-	if (missing.length !== 0) {
-		if (GODOT_CONFIG['serviceWorker'] && GODOT_CONFIG['ensureCrossOriginIsolationHeaders'] && 'serviceWorker' in navigator) {
-			let serviceWorkerRegistrationPromise;
-			try {
-				serviceWorkerRegistrationPromise = navigator.serviceWorker.getRegistration();
-			} catch (err) {
-				serviceWorkerRegistrationPromise = Promise.reject(new Error('Service worker registration failed.'));
-			}
-			// There's a chance that installing the service worker would fix the issue
-			Promise.race([
-				serviceWorkerRegistrationPromise.then((registration) => {
-					if (registration != null) {
-						return Promise.reject(new Error('Service worker already exists.'));
-					}
-					return registration;
-				}).then(() => engine.installServiceWorker()),
-				// For some reason, `getRegistration()` can stall
-				new Promise((resolve) => {
-					setTimeout(() => resolve(), 2000);
-				}),
-			]).then(() => {
-				// Reload if there was no error.
-				window.location.reload();
-			}).catch((err) => {
-				console.error('Error while registering service worker:', err);
-			});
-		} else {
-			// Display the message as usual
-			const missingMsg = 'Error\nThe following features required to run Godot projects on the Web are missing:\n';
-			displayFailureNotice(missingMsg + missing.join('\n'));
-		}
-	} else {
-		setStatusMode('progress');
-		engine.startGame({
-			'onProgress': function (current, total) {
-				if (current > 0 && total > 0) {
-					statusProgress.value = current;
-					statusProgress.max = total;
-				} else {
-					statusProgress.removeAttribute('value');
-					statusProgress.removeAttribute('max');
-				}
-			},
-		}).then(() => {
-			setStatusMode('hidden');
-		}, displayFailureNotice);
-	}
-}());
-		</script>
-	</body>
+    // Render card view
+    renderArmy(army1, $('army-left'));
+    renderArmy(army2, $('army-right'));
+
+    // Render preview iframes
+    $('preview-frame-1').srcdoc = '<!DOCTYPE html><html>' + result1.modifiedHtml + '</html>';
+    $('preview-frame-2').srcdoc = '<!DOCTYPE html><html>' + result2.modifiedHtml + '</html>';
+
+    // Default to split view so user sees both
+    switchView('split');
+
+    await sleep(400);
+
+    // Scanning animation
+    addScanLine($('army-left'));
+    addScanLine($('army-right'));
+    $('round-info').textContent = `Scanned: ${army1.length} vs ${army2.length} elements`;
+    await sleep(800);
+
+    $('battle-log').classList.add('visible');
+    await runBattle();
+  } catch(e) {
+    $('loading-screen').style.display = 'none';
+    $('input-screen').style.display = 'flex';
+    $('fight-btn').disabled = false;
+    showError(e.message);
+  }
+}
+
+function showError(msg) { $('error-msg').textContent = msg; }
+
+function renderArmy(army, container) {
+  container.innerHTML = '';
+  for (const unit of army) {
+    const card = document.createElement('div');
+    card.className = 'el-card';
+    card.dataset.role = unit.role;
+    card.dataset.uid = unit.id;
+    card.innerHTML = `<span class="el-tag">&lt;${unit.tag}&gt;</span><span class="el-preview">${escHtml(unit.text.slice(0,40))}</span><span class="el-level">Lv1</span><span class="streak-badge"></span>`;
+    card.title = `${unit.role.toUpperCase()} | HP:${unit.hp} ATK:${unit.atk} DEF:${unit.def}`;
+    container.appendChild(card);
+  }
+}
+
+function addScanLine(container) {
+  const line = document.createElement('div');
+  line.className = 'scan-line';
+  container.appendChild(line);
+  setTimeout(() => line.remove(), 1600);
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── Core Battle Loop ──
+async function runBattle() {
+  const {army1, army2} = battleState;
+  const totalHp1 = army1.reduce((s,u) => s + u.maxHp, 0);
+  const totalHp2 = army2.reduce((s,u) => s + u.maxHp, 0);
+  let roundNum = 0;
+
+  shuffle(army1);
+  shuffle(army2);
+
+  while (true) {
+    const alive1 = army1.filter(u => u.alive);
+    const alive2 = army2.filter(u => u.alive);
+    if (alive1.length === 0 || alive2.length === 0) break;
+
+    roundNum++;
+    battleState.round = roundNum;
+    $('round-info').textContent = `Round ${roundNum}`;
+
+    const pairs = Math.min(alive1.length, alive2.length, 12);
+    const fighters1 = pickFighters(alive1, pairs);
+    const fighters2 = pickFighters(alive2, pairs);
+
+    // Run all duels in parallel
+    await Promise.all(fighters1.map((f, i) => duel(f, fighters2[i])));
+
+    const curHp1 = army1.filter(u=>u.alive).reduce((s,u)=>s+u.hp,0);
+    const curHp2 = army2.filter(u=>u.alive).reduce((s,u)=>s+u.hp,0);
+    updateHpBar(curHp1, totalHp1, 'hp1-bar', 'hp1-val');
+    updateHpBar(curHp2, totalHp2, 'hp2-bar', 'hp2-val');
+
+    await sleep(40);
+  }
+
+  battleState.totalRounds = roundNum;
+  await sleep(200);
+  await showAftermath();
+}
+
+function pickFighters(alive, count) {
+  const weighted = alive.map(u => ({u, w: u.hp + u.atk * 2}));
+  weighted.sort((a,b) => b.w - a.w);
+  const pool = weighted.slice(0, Math.max(count * 3, 8));
+  shuffle(pool);
+  return pool.slice(0, count).map(x => x.u);
+}
+
+async function duel(unit1, unit2) {
+  const card1 = getCard(unit1);
+  const card2 = getCard(unit2);
+
+  // Critical hit chance: base 10%, +5% per streak, +5% per level above 1
+  const crit1 = Math.random() < (0.10 + unit1.streak * 0.05 + (unit1.level - 1) * 0.05);
+  const crit2 = Math.random() < (0.10 + unit2.streak * 0.05 + (unit2.level - 1) * 0.05);
+  const critMult1 = crit1 ? 2.5 : 1;
+  const critMult2 = crit2 ? 2.5 : 1;
+
+  let dmg1to2 = Math.max(1, Math.round((unit1.atk - unit2.def + randInt(-3, 5)) * critMult1));
+  let dmg2to1 = Math.max(1, Math.round((unit2.atk - unit1.def + randInt(-3, 5)) * critMult2));
+  if (crit1) unit1.crits++;
+  if (crit2) unit2.crits++;
+
+  // Card animations
+  if (card1) { card1.style.setProperty('--atk-dir','12px'); card1.classList.add('attacking'); }
+  if (card2) { card2.style.setProperty('--atk-dir','-12px'); card2.classList.add('attacking'); }
+  await sleep(30);
+
+  // Apply damage
+  unit2.hp -= dmg1to2;
+  unit1.hp -= dmg2to1;
+
+  // Card hit effects
+  if (card2) { card2.classList.remove('attacking'); card2.classList.add('hit'); }
+  if (card1) { card1.classList.remove('attacking'); card1.classList.add('hit'); }
+
+  // Preview hit/crit effects
+  if (crit1) { syncPreviewCrit(unit2, unit2.side); } else { syncPreviewHit(unit2, unit2.side); }
+  if (crit2) { syncPreviewCrit(unit1, unit1.side); } else { syncPreviewHit(unit1, unit1.side); }
+
+  // Build log line
+  let log1 = `<span class="atk">&lt;${unit1.tag}&gt;${unit1.level>1?' Lv'+unit1.level:''}</span> hits <span class="atk">&lt;${unit2.tag}&gt;</span> for <span class="dmg">${dmg1to2}</span>${crit1?' <span class="ko">CRIT!</span>':''}`;
+  let log2 = `<span class="atk">&lt;${unit2.tag}&gt;${unit2.level>1?' Lv'+unit2.level:''}</span> hits back for <span class="dmg">${dmg2to1}</span>${crit2?' <span class="ko">CRIT!</span>':''}`;
+  logBattle(`${log1} | ${log2}`);
+
+  await sleep(40);
+  if (card1) card1.classList.remove('hit');
+  if (card2) card2.classList.remove('hit');
+
+  // Check deaths, award XP, manage streaks
+  if (unit2.hp <= 0) {
+    unit2.alive = false; unit2.hp = 0; unit2.streak = 0;
+    // Killer gets XP based on victim's power
+    const xpGain = 10 + Math.round((unit2.maxHp + unit2.atk) * 0.15);
+    unit1.kills++; unit1.streak++;
+    const didLevel = awardXP(unit1, xpGain);
+    applyStreakVisuals(unit1);
+    let killMsg = `<span class="ko">&lt;${unit2.tag}&gt; [${unit2.role}] destroyed!</span>`;
+    if (unit1.streak >= 3) killMsg += ` <span class="win">&lt;${unit1.tag}&gt; ${unit1.streak}-KILL STREAK!</span>`;
+    if (didLevel) killMsg += ` <span class="win">&lt;${unit1.tag}&gt; leveled up to Lv${unit1.level}!</span>`;
+    logBattle(killMsg);
+    if (card2) {
+      card2.classList.add(Math.random() > 0.5 ? 'defeated' : 'crumbling');
+      setTimeout(() => card2.remove(), 600);
+    }
+    syncPreviewDefeat(unit2, unit2.side);
+  } else {
+    syncPreviewDamage(unit2, unit2.side);
+    if (card2) card2.title = `${unit2.role.toUpperCase()} Lv${unit2.level} | HP:${unit2.hp}/${unit2.maxHp} ATK:${unit2.atk} DEF:${unit2.def} | Kills:${unit2.kills}`;
+  }
+
+  if (unit1.hp <= 0) {
+    unit1.alive = false; unit1.hp = 0; unit1.streak = 0;
+    const xpGain = 10 + Math.round((unit1.maxHp + unit1.atk) * 0.15);
+    unit2.kills++; unit2.streak++;
+    const didLevel = awardXP(unit2, xpGain);
+    applyStreakVisuals(unit2);
+    let killMsg = `<span class="ko">&lt;${unit1.tag}&gt; [${unit1.role}] destroyed!</span>`;
+    if (unit2.streak >= 3) killMsg += ` <span class="win">&lt;${unit2.tag}&gt; ${unit2.streak}-KILL STREAK!</span>`;
+    if (didLevel) killMsg += ` <span class="win">&lt;${unit2.tag}&gt; leveled up to Lv${unit2.level}!</span>`;
+    logBattle(killMsg);
+    if (card1) {
+      card1.classList.add(Math.random() > 0.5 ? 'defeated' : 'crumbling');
+      setTimeout(() => card1.remove(), 600);
+    }
+    syncPreviewDefeat(unit1, unit1.side);
+  } else {
+    syncPreviewDamage(unit1, unit1.side);
+    if (card1) card1.title = `${unit1.role.toUpperCase()} Lv${unit1.level} | HP:${unit1.hp}/${unit1.maxHp} ATK:${unit1.atk} DEF:${unit1.def} | Kills:${unit1.kills}`;
+  }
+
+  await sleep(20);
+}
+
+function getCard(unit) {
+  return document.querySelector(`.el-card[data-uid="${unit.id}"]`);
+}
+
+function updateHpBar(cur, total, barId, valId) {
+  const pct = Math.max(0, Math.round((cur / total) * 100));
+  $(barId).style.width = pct + '%';
+  $(valId).textContent = pct + '%';
+}
+
+function logBattle(html) {
+  const log = $('battle-log');
+  const entry = document.createElement('div');
+  entry.className = 'log-entry';
+  entry.innerHTML = html;
+  log.appendChild(entry);
+  log.scrollTop = log.scrollHeight;
+}
+
+// ── Aftermath ──
+async function showAftermath() {
+  const {army1, army2, url1, url2, totalRounds} = battleState;
+  const alive1 = army1.filter(u => u.alive);
+  const alive2 = army2.filter(u => u.alive);
+  const winner = alive1.length > 0 ? 1 : 2;
+  const winnerUrl = winner === 1 ? url1 : url2;
+  const winnerAlive = winner === 1 ? alive1 : alive2;
+  const loserAlive = winner === 1 ? alive2 : alive1;
+
+  $('round-info').textContent = 'Battle Complete';
+  $('arena').classList.add('battle-over');
+
+  // Card view war-torn effects
+  document.querySelector('.battlefield').classList.add('war-torn');
+  const survivors = document.querySelectorAll('.el-card');
+  survivors.forEach(card => {
+    const uid = card.dataset.uid;
+    const unit = [...army1, ...army2].find(u => u.id === uid);
+    if (!unit || !unit.alive) return;
+    card.classList.add('survivor');
+    const hpPct = unit.hp / unit.maxHp;
+    card.style.setProperty('--crack-angle', randInt(45, 170) + 'deg');
+    if (hpPct < 0.25) {
+      card.classList.add('barely-alive');
+      card.style.setProperty('--base-opacity', '0.4');
+      card.style.setProperty('--hang-base', `rotate(${randInt(-6,6)}deg)`);
+      card.style.transform = `rotate(${randInt(-5,5)}deg) translateY(${randInt(-3,5)}px)`;
+    } else if (hpPct < 0.6) {
+      card.classList.add('damaged');
+      card.style.transform = `rotate(${randInt(-3,3)}deg)`;
+      card.style.setProperty('--base-opacity', '0.65');
+    }
+  });
+
+  // Card view particles
+  const bf = document.querySelector('.battlefield');
+  for (let i = 0; i < 25; i++) addSmokeParticle(bf);
+  for (let i = 0; i < 15; i++) addEmber(bf);
+
+  // Preview war-torn effects
+  syncPreviewWarTorn(army1, 1);
+  syncPreviewWarTorn(army2, 2);
+  $('preview-view').classList.add('war-torn');
+
+  // Add smoke particles to preview overlays
+  addPreviewSmoke('smoke-overlay-1');
+  addPreviewSmoke('smoke-overlay-2');
+
+  // Switch to preview to show the carnage
+  await sleep(800);
+  if (currentView === 'cards') switchView('split');
+
+  await sleep(600);
+
+  // Victory banner
+  $('victory-title').textContent = winner === 1 ? 'Challenger 1 Wins!' : 'Challenger 2 Wins!';
+  $('winner-url').textContent = winnerUrl;
+  const mvp = findMVP(winnerAlive);
+  const topKiller = [...winnerAlive].sort((a,b)=>b.kills-a.kills)[0];
+  const highestLvl = [...winnerAlive].sort((a,b)=>b.level-a.level)[0];
+  $('victory-stats').innerHTML = `
+    Rounds fought: ${totalRounds}<br>
+    Survivors: ${winnerAlive.length} elements<br>
+    Total destroyed: ${army1.length + army2.length - winnerAlive.length - loserAlive.length} elements<br>
+    MVP: &lt;${mvp.tag}&gt; (${mvp.role}) — Lv${mvp.level}, ${mvp.kills} kills<br>
+    Top Killer: &lt;${topKiller.tag}&gt; — ${topKiller.kills} kills, ${topKiller.crits} crits<br>
+    Highest Level: &lt;${highestLvl.tag}&gt; — Lv${highestLvl.level}
+  `;
+  $('victory-banner').classList.add('visible');
+}
+
+function findMVP(alive) {
+  if (alive.length === 0) return {tag:'none', role:'none'};
+  return alive.reduce((best, u) => (u.hp > best.hp ? u : best), alive[0]);
+}
+
+function addSmokeParticle(container) {
+  const p = document.createElement('div');
+  p.className = 'smoke-particle';
+  p.style.left = randInt(5, 95) + '%';
+  p.style.bottom = randInt(0, 30) + '%';
+  p.style.setProperty('--smoke-dur', (3 + Math.random() * 4) + 's');
+  p.style.setProperty('--smoke-delay', (Math.random() * 3) + 's');
+  p.style.setProperty('--smoke-dx', randInt(-20, 20) + 'px');
+  p.style.width = randInt(3, 8) + 'px';
+  p.style.height = p.style.width;
+  container.appendChild(p);
+}
+
+function addEmber(container) {
+  const e = document.createElement('div');
+  e.className = 'ember';
+  e.style.left = randInt(10, 90) + '%';
+  e.style.bottom = randInt(5, 40) + '%';
+  e.style.setProperty('--ember-dur', (2 + Math.random() * 3) + 's');
+  e.style.setProperty('--ember-delay', (Math.random() * 4) + 's');
+  e.style.setProperty('--ember-dx', randInt(-30, 30) + 'px');
+  e.style.setProperty('--ember-dy', randInt(-60, -100) + 'px');
+  container.appendChild(e);
+}
+
+function addPreviewSmoke(overlayId) {
+  const container = $(overlayId);
+  for (let i = 0; i < 18; i++) {
+    const p = document.createElement('div');
+    p.className = 'smoke-particle';
+    p.style.left = randInt(5, 95) + '%';
+    p.style.bottom = randInt(0, 50) + '%';
+    p.style.setProperty('--smoke-dur', (4 + Math.random() * 5) + 's');
+    p.style.setProperty('--smoke-delay', (Math.random() * 4) + 's');
+    p.style.setProperty('--smoke-dx', randInt(-30, 30) + 'px');
+    p.style.width = randInt(6, 14) + 'px';
+    p.style.height = p.style.width;
+    container.appendChild(p);
+  }
+  for (let i = 0; i < 10; i++) {
+    const e = document.createElement('div');
+    e.className = 'ember';
+    e.style.left = randInt(10, 90) + '%';
+    e.style.bottom = randInt(5, 60) + '%';
+    e.style.setProperty('--ember-dur', (2.5 + Math.random() * 3) + 's');
+    e.style.setProperty('--ember-delay', (Math.random() * 5) + 's');
+    e.style.setProperty('--ember-dx', randInt(-40, 40) + 'px');
+    e.style.setProperty('--ember-dy', randInt(-80, -140) + 'px');
+    container.appendChild(e);
+  }
+}
+
+// ── Fullscreen Expand ──
+function expandPanel(panelId) {
+  if (!battleState || !document.querySelector('#arena').classList.contains('battle-over')) return;
+
+  const viewer = $('fullscreen-viewer');
+  const body = $('fs-body');
+  const title = $('fs-title');
+  body.innerHTML = '';
+
+  if (panelId === 'cards-left' || panelId === 'cards-right') {
+    const side = panelId === 'cards-left' ? 1 : 2;
+    const army = side === 1 ? battleState.army1 : battleState.army2;
+    const url = side === 1 ? battleState.url1 : battleState.url2;
+    title.textContent = `${url} — Battle Cards (${army.filter(u=>u.alive).length} survivors)`;
+
+    const container = document.createElement('div');
+    container.className = 'fs-cards war-torn';
+    // Clone surviving card elements
+    const sourceArmy = side === 1 ? $('army-left') : $('army-right');
+    sourceArmy.querySelectorAll('.el-card').forEach(card => {
+      container.appendChild(card.cloneNode(true));
+    });
+    body.appendChild(container);
+  }
+  else if (panelId === 'preview-1' || panelId === 'preview-2') {
+    const side = panelId === 'preview-1' ? 1 : 2;
+    const url = side === 1 ? battleState.url1 : battleState.url2;
+    const sourceFrame = side === 1 ? $('preview-frame-1') : $('preview-frame-2');
+    title.textContent = `${url} — War-torn Preview`;
+
+    // Create a new iframe with the same srcdoc, but at full size and scrollable
+    const iframe = document.createElement('iframe');
+    iframe.sandbox = 'allow-same-origin';
+    iframe.srcdoc = sourceFrame.srcdoc;
+    body.appendChild(iframe);
+
+    // Copy battle state classes to the new iframe once it loads
+    iframe.onload = () => {
+      try {
+        const srcDoc = sourceFrame.contentDocument;
+        const dstDoc = iframe.contentDocument;
+        if (!srcDoc || !dstDoc) return;
+        // Copy all arena classes from source to destination
+        srcDoc.querySelectorAll('[data-arena-id]').forEach(srcEl => {
+          const id = srcEl.getAttribute('data-arena-id');
+          const dstEl = dstDoc.querySelector(`[data-arena-id="${id}"]`);
+          if (dstEl) {
+            dstEl.className = srcEl.className;
+            dstEl.style.cssText = srcEl.style.cssText;
+          }
+        });
+        // Copy body classes
+        if (srcDoc.body) {
+          dstDoc.body.className = srcDoc.body.className;
+        }
+      } catch(e) {}
+    };
+
+    // Vignette + smoke over iframe
+    const vig = document.createElement('div');
+    vig.className = 'vignette';
+    body.appendChild(vig);
+    const smoke = document.createElement('div');
+    smoke.className = 'fs-smoke';
+    body.appendChild(smoke);
+    addPreviewSmoke_to(smoke);
+  }
+
+  viewer.classList.add('visible');
+  $('victory-banner').style.display = 'none';
+}
+
+function addPreviewSmoke_to(container) {
+  for (let i = 0; i < 20; i++) {
+    const p = document.createElement('div');
+    p.className = 'smoke-particle';
+    p.style.left = randInt(5, 95) + '%';
+    p.style.bottom = randInt(0, 50) + '%';
+    p.style.setProperty('--smoke-dur', (4 + Math.random() * 5) + 's');
+    p.style.setProperty('--smoke-delay', (Math.random() * 4) + 's');
+    p.style.setProperty('--smoke-dx', randInt(-30, 30) + 'px');
+    p.style.width = randInt(6, 14) + 'px';
+    p.style.height = p.style.width;
+    container.appendChild(p);
+  }
+  for (let i = 0; i < 12; i++) {
+    const e = document.createElement('div');
+    e.className = 'ember';
+    e.style.left = randInt(10, 90) + '%';
+    e.style.bottom = randInt(5, 60) + '%';
+    e.style.setProperty('--ember-dur', (2.5 + Math.random() * 3) + 's');
+    e.style.setProperty('--ember-delay', (Math.random() * 5) + 's');
+    e.style.setProperty('--ember-dx', randInt(-40, 40) + 'px');
+    e.style.setProperty('--ember-dy', randInt(-80, -140) + 'px');
+    container.appendChild(e);
+  }
+}
+
+function closeFullscreen() {
+  $('fullscreen-viewer').classList.remove('visible');
+  $('fs-body').innerHTML = '';
+  // Re-show victory banner
+  $('victory-banner').style.display = '';
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && $('fullscreen-viewer').classList.contains('visible')) {
+    closeFullscreen();
+  }
+});
+
+// ── Utilities ──
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+function randInt(a,b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+}
+</script>
+</body>
 </html>
-

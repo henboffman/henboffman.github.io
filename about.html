@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Website Arena - Game mechanics, stat calculations, and combat system documentation.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#x2694;</text></svg>">
+<title>Website Arena - How It Works</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  body{padding:2rem;max-width:900px;margin:0 auto}
+  .back-link{color:var(--gold);text-decoration:underline;font-size:0.9rem;letter-spacing:0.1em}
+  h1{font-size:2rem;text-transform:uppercase;letter-spacing:0.2em;
+    background:linear-gradient(135deg,var(--red),var(--orange),var(--gold));
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+    margin:1.5rem 0 0.5rem}
+  h2{font-size:1.2rem;color:var(--gold);margin:2.5rem 0 0.8rem;
+    border-bottom:1px solid #333;padding-bottom:0.4rem;letter-spacing:0.1em}
+  h3{font-size:0.95rem;color:var(--orange);margin:1.4rem 0 0.5rem}
+  p,li{font-size:0.9rem;line-height:1.8;color:#f0f0f0}
+  ul,ol{padding-left:1.5rem;margin:0.5rem 0}
+  table{width:100%;border-collapse:collapse;margin:0.8rem 0;font-size:0.8rem}
+  th{text-align:left;color:var(--gold);padding:8px 10px;border-bottom:2px solid #444;font-size:0.8rem}
+  td{padding:6px 10px;border-bottom:1px solid #262626;color:#e8e8e8}
+  tr:hover td{background:rgba(255,170,0,0.05)}
+  code{background:#1a1a28;padding:2px 6px;border-radius:3px;font-size:0.82rem;color:#44ddff;border:1px solid #2a2a3a}
+  pre{background:#111118;border:1px solid #2a2a3a;border-radius:4px;padding:1rem;
+    overflow-x:auto;font-size:0.82rem;line-height:1.7;margin:0.8rem 0}
+  pre code{background:none;padding:0;color:#e8e8e8;border:none}
+  .role-tag{display:inline-block;padding:1px 6px;border-radius:3px;font-size:0.65rem;font-weight:bold}
+  .section-card{background:var(--bg2);border:1px solid #222;border-radius:6px;padding:1rem;margin:0.8rem 0}
+</style>
+</head>
+<body>
+
+<a href="index.html" class="back-link">&larr; Back to Arena</a>
+
+<h1>How Website Arena Works</h1>
+<p style="color:#bbb;margin-bottom:2rem">
+  Website Arena fetches two websites, extracts their HTML elements, converts them into battle units,
+  and simulates a turn-based combat between the two armies. Here's how every system works.
+</p>
+
+<h2>Element Classification</h2>
+<p>Each HTML element is classified into a <strong>role</strong> with base stats (HP, ATK, DEF).</p>
+<table>
+  <thead><tr><th>Tag(s)</th><th>Role</th><th>HP</th><th>ATK</th><th>DEF</th></tr></thead>
+  <tbody>
+    <tr><td><code>&lt;h1&gt;</code></td><td>Boss</td><td>120</td><td>30</td><td>22</td></tr>
+    <tr><td><code>&lt;h2&gt;</code></td><td>Commander</td><td>95</td><td>26</td><td>18</td></tr>
+    <tr><td><code>&lt;h3&gt;</code></td><td>Officer</td><td>75</td><td>22</td><td>15</td></tr>
+    <tr><td><code>&lt;h4&gt;</code></td><td>Officer</td><td>65</td><td>20</td><td>14</td></tr>
+    <tr><td><code>&lt;h5&gt;</code></td><td>Officer</td><td>55</td><td>18</td><td>12</td></tr>
+    <tr><td><code>&lt;h6&gt;</code>, <code>&lt;th&gt;</code></td><td>Officer</td><td>48 / 35</td><td>16 / 12</td><td>11 / 12</td></tr>
+    <tr><td><code>&lt;nav&gt;</code></td><td>Shield</td><td>80</td><td>12</td><td>32</td></tr>
+    <tr><td><code>&lt;button&gt;</code>, <code>&lt;strong&gt;</code>, <code>&lt;b&gt;</code></td><td>Striker</td><td>55 / 25 / 22</td><td>36 / 15 / 14</td><td>10 / 5 / 5</td></tr>
+    <tr><td><code>&lt;a&gt;</code>, <code>&lt;summary&gt;</code></td><td>Scout</td><td>35 / 30</td><td>22 / 16</td><td>6 / 8</td></tr>
+    <tr><td><code>&lt;img&gt;</code>, <code>&lt;svg&gt;</code>, <code>&lt;figure&gt;</code></td><td>Ranger</td><td>60 / 55 / 50</td><td>32 / 28 / 24</td><td>8 / 8 / 10</td></tr>
+    <tr><td><code>&lt;video&gt;</code>, <code>&lt;audio&gt;</code>, <code>&lt;canvas&gt;</code>, <code>&lt;iframe&gt;</code></td><td>Artillery</td><td>90&ndash;95</td><td>38&ndash;44</td><td>4&ndash;7</td></tr>
+    <tr><td><code>&lt;form&gt;</code>, <code>&lt;input&gt;</code>, <code>&lt;select&gt;</code>, <code>&lt;textarea&gt;</code>, <code>&lt;pre&gt;</code>, <code>&lt;code&gt;</code>, <code>&lt;details&gt;</code></td><td>Engineer</td><td>35&ndash;75</td><td>14&ndash;20</td><td>10&ndash;28</td></tr>
+    <tr><td><code>&lt;table&gt;</code>, <code>&lt;thead&gt;</code>, <code>&lt;tbody&gt;</code>, <code>&lt;tr&gt;</code></td><td>Fortress</td><td>30&ndash;100</td><td>6&ndash;12</td><td>15&ndash;38</td></tr>
+    <tr><td><code>&lt;ul&gt;</code>, <code>&lt;ol&gt;</code>, <code>&lt;li&gt;</code>, <code>&lt;dl&gt;</code></td><td>Squad</td><td>28&ndash;55</td><td>14&ndash;22</td><td>10&ndash;18</td></tr>
+    <tr><td><code>&lt;div&gt;</code>, <code>&lt;td&gt;</code>, <code>&lt;hr&gt;</code></td><td>Infantry</td><td>15&ndash;40</td><td>5&ndash;14</td><td>8&ndash;12</td></tr>
+    <tr><td><code>&lt;p&gt;</code>, <code>&lt;figcaption&gt;</code>, <code>&lt;blockquote&gt;</code></td><td>Civilian</td><td>22&ndash;35</td><td>8&ndash;12</td><td>6&ndash;12</td></tr>
+    <tr><td><code>&lt;span&gt;</code>, <code>&lt;em&gt;</code>, <code>&lt;i&gt;</code>, <code>&lt;label&gt;</code>, <code>&lt;br&gt;</code></td><td>Messenger</td><td>5&ndash;20</td><td>1&ndash;8</td><td>1&ndash;5</td></tr>
+    <tr><td><code>&lt;section&gt;</code>, <code>&lt;article&gt;</code>, <code>&lt;aside&gt;</code></td><td>Barracks</td><td>55&ndash;70</td><td>14&ndash;18</td><td>18&ndash;22</td></tr>
+    <tr><td><code>&lt;main&gt;</code>, <code>&lt;header&gt;</code></td><td>Vanguard</td><td>65&ndash;80</td><td>20&ndash;22</td><td>20&ndash;24</td></tr>
+    <tr><td><code>&lt;footer&gt;</code></td><td>Rearguard</td><td>55</td><td>12</td><td>24</td></tr>
+  </tbody>
+</table>
+<p>Elements not in this table use default Infantry stats: HP 25, ATK 10, DEF 8. A maximum of 150 elements per site are used (prioritizing higher-stat elements).</p>
+
+<h2>Stat Calculations</h2>
+<p>After base stats are assigned, content-based bonuses are applied:</p>
+<table>
+  <thead><tr><th>Condition</th><th>Bonus</th></tr></thead>
+  <tbody>
+    <tr><td>Text content length &gt; 0</td><td>+HP (0.3 per char, max +20)</td></tr>
+    <tr><td>Child elements &gt; 0</td><td>+DEF (1.5 per child, max +15)</td></tr>
+    <tr><td>Attributes &gt; 2</td><td>+ATK (1 per attr, max +8)</td></tr>
+    <tr><td>Has CSS classes</td><td>+5 HP, +3 DEF</td></tr>
+  </tbody>
+</table>
+
+<h3>Per-Element Accessibility Bonuses</h3>
+<p>Individual elements can earn stat bonuses from their own accessibility features:</p>
+<table>
+  <thead><tr><th>Feature</th><th>Bonus</th></tr></thead>
+  <tbody>
+    <tr><td><code>&lt;img&gt;</code> with non-empty <code>alt</code> attribute</td><td>+5 ATK, +3 DEF</td></tr>
+    <tr><td>Has <code>aria-label</code> or <code>aria-labelledby</code></td><td>+8 HP</td></tr>
+    <tr><td>Has meaningful <code>role</code> attribute</td><td>+4 DEF</td></tr>
+    <tr><td><code>&lt;input&gt;</code> with associated <code>&lt;label&gt;</code></td><td>+5 DEF</td></tr>
+  </tbody>
+</table>
+
+<h2>Accessibility Detection &amp; Tiers</h2>
+<p>The entire page is scanned for 7 accessibility practices. Each detected practice gives a small bonus to <strong>every</strong> unit in that army:</p>
+<table>
+  <thead><tr><th>Practice</th><th>Detection Rule</th><th>Army-Wide Bonus</th></tr></thead>
+  <tbody>
+    <tr><td>lang attribute</td><td><code>&lt;html lang="..."&gt;</code> present</td><td>+2 DEF per unit</td></tr>
+    <tr><td>Heading hierarchy</td><td>&ge;2 headings, no skipped levels</td><td>+3 ATK per unit</td></tr>
+    <tr><td>Alt coverage</td><td>&gt;80% of images have alt text (or no images)</td><td>+2 ATK, +2 DEF per unit</td></tr>
+    <tr><td>Skip navigation</td><td>Link with href="#..." containing "skip" or "jump to"</td><td>+3 HP per unit</td></tr>
+    <tr><td>ARIA landmarks</td><td>&ge;2 semantic landmarks (nav, main, etc.) or ARIA roles</td><td>+2 DEF per unit</td></tr>
+    <tr><td>Meta viewport</td><td><code>&lt;meta name="viewport"&gt;</code> present</td><td>+2 HP per unit</td></tr>
+    <tr><td>Semantic HTML</td><td>&ge;3 different semantic elements (main, nav, article, etc.)</td><td>+2 ATK, +2 HP per unit</td></tr>
+  </tbody>
+</table>
+
+<h3>Tier Thresholds</h3>
+<p>Based on total practices detected, armies earn a tier with multiplicative stat bonuses and special abilities:</p>
+<table>
+  <thead><tr><th>Practices</th><th>Tier Name</th><th>Stat Multiplier</th><th>Dodge Chance</th><th>Crit Resistance</th></tr></thead>
+  <tbody>
+    <tr><td>3&ndash;4</td><td>Standards Compliant</td><td>+5% all stats</td><td>0%</td><td>0%</td></tr>
+    <tr><td>5&ndash;6</td><td>Accessible</td><td>+10% all stats</td><td>0%</td><td>15%</td></tr>
+    <tr><td>7</td><td>A11y Champion</td><td>+15% all stats</td><td>8%</td><td>20%</td></tr>
+  </tbody>
+</table>
+
+<h2>Synergy System</h2>
+<p>If an army contains specific role combinations, synergy bonuses activate:</p>
+<table>
+  <thead><tr><th>Synergy</th><th>Required Roles</th><th>Effect</th></tr></thead>
+  <tbody>
+    <tr><td>Shield Wall</td><td>Shield + Fortress</td><td>+6 DEF to both roles</td></tr>
+    <tr><td>Strike Force</td><td>Striker + Scout</td><td>+5 ATK to both roles</td></tr>
+    <tr><td>Command Chain</td><td>Boss + Commander + Officer</td><td>+3 ATK/DEF, +10 HP to all three</td></tr>
+    <tr><td>Fire Support</td><td>Artillery + Ranger</td><td>+4 ATK to both roles</td></tr>
+    <tr><td>Engineering Corps</td><td>Engineer + Fortress</td><td>+12 HP to Engineers</td></tr>
+  </tbody>
+</table>
+
+<h2>Combat Mechanics</h2>
+
+<h3>Damage Formula</h3>
+<pre><code>damage = max(1, round((attacker.ATK * lastStandMult - defender.DEF + random(-3, 5)) * critMult))</code></pre>
+<p>Where <code>lastStandMult</code> is 1.4 if the attacker is below 15% HP, and <code>critMult</code> is 2.5 on a critical hit (1.0 otherwise).</p>
+
+<h3>Critical Hit Chance</h3>
+<pre><code>critChance = max(0, 0.10 + streak * 0.05 + (level - 1) * 0.05 - defender.critResist)</code></pre>
+<p>Base 10%, increased by win streaks and level, reduced by the defender's a11y crit resistance.</p>
+
+<h3>Dodge</h3>
+<p>Only available to armies with the A11y Champion tier (8% chance). A dodged attack deals 0 damage.</p>
+
+<h3>Counter Attack</h3>
+<p>After the main exchange, <strong>Striker</strong> and <strong>Vanguard</strong> roles have a 15% chance to counter for 50% of their ATK. If the counter defeats the target, it counts as a kill.</p>
+
+<h3>Last Stand</h3>
+<p>When a unit drops below 15% HP, it enters Last Stand mode: a 1.4x damage multiplier on all attacks. Visually marked with a red pulsing glow.</p>
+
+<h3>Healing</h3>
+<p>Each round has a 25% chance of triggering a healing phase. A random <strong>Engineer</strong> heals a random wounded ally for <code>round(engineer.DEF * 0.5 + random(3, 8))</code> HP, up to max HP.</p>
+
+<h3>Morale</h3>
+<p>When a <strong>Boss</strong> or <strong>Commander</strong> is defeated, the entire army suffers a morale break:</p>
+<ul>
+  <li>Boss death: &minus;12% ATK and DEF for all surviving units</li>
+  <li>Commander death: &minus;6% ATK and DEF for all surviving units</li>
+</ul>
+
+<h2>XP and Leveling</h2>
+<p>Units earn XP by defeating enemies:</p>
+<pre><code>xpGain = 10 + round((victim.maxHP + victim.ATK) * 0.15)</code></pre>
+<p>XP needed to level up: <code>30 * currentLevel</code>. Maximum level is 5.</p>
+<p>On level up:</p>
+<ul>
+  <li>+4 ATK</li>
+  <li>+3 DEF</li>
+  <li>+15% of max HP (added to both current and max)</li>
+</ul>
+
+<h2>Battle Flow</h2>
+<ol>
+  <li>Both armies are shuffled randomly</li>
+  <li>Each round, a variable number of pairs fight simultaneously (1&ndash;12, based on intensity roll)</li>
+  <li>Higher ATK+HP units are weighted to fight more often</li>
+  <li>After all duels in a round, 25% chance of a healing phase</li>
+  <li>HP bars update, then the next round begins</li>
+  <li>Battle ends when one army has no surviving units</li>
+</ol>
+
+<br>
+<a href="index.html" class="back-link">&larr; Back to Arena</a>
+
+</body>
+</html>

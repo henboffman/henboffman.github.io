@@ -323,6 +323,60 @@ const ARENA_IFRAME_CSS = `
   }
 `;
 
+// ── URL Sanitization & Validation ──
+const BLOCKED_HOSTNAMES = new Set([
+  'localhost','0.0.0.0','127.0.0.1','[::1]',
+]);
+const BLOCKED_HOST_PATTERNS = [
+  /^192\.168\./,/^10\./,/^172\.(1[6-9]|2\d|3[01])\./,  // private IPv4
+  /^169\.254\./,                                          // link-local
+  /^0\./,/^100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\./,    // shared/reserved
+  /\.local$/i,/\.internal$/i,/\.localhost$/i,
+];
+
+function sanitizeUrl(raw) {
+  const s = raw.trim();
+  if (!s) return { ok: false, error: 'URL is empty' };
+
+  let parsed;
+  try { parsed = new URL(s); } catch {
+    return { ok: false, error: 'Invalid URL (include https://)' };
+  }
+
+  // Protocol check
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+    return { ok: false, error: 'Only http and https URLs are allowed' };
+  }
+
+  // Auth / credentials in URL
+  if (parsed.username || parsed.password) {
+    return { ok: false, error: 'URLs with credentials are not allowed' };
+  }
+
+  // Block local / private hosts
+  const host = parsed.hostname.toLowerCase();
+  if (BLOCKED_HOSTNAMES.has(host)) {
+    return { ok: false, error: 'Local/private addresses are not allowed' };
+  }
+  for (const p of BLOCKED_HOST_PATTERNS) {
+    if (p.test(host)) return { ok: false, error: 'Local/private addresses are not allowed' };
+  }
+
+  // Must have a valid domain (at least one dot, or known TLD pattern)
+  if (!host.includes('.') && !BLOCKED_HOSTNAMES.has(host)) {
+    return { ok: false, error: 'Enter a valid domain (e.g. example.com)' };
+  }
+
+  // Block non-standard ports commonly used for local services
+  if (parsed.port && !['80','443',''].includes(parsed.port)) {
+    return { ok: false, error: 'Non-standard ports are not allowed' };
+  }
+
+  // Reconstruct a clean URL (strips fragments, normalizes)
+  const clean = parsed.origin + parsed.pathname + parsed.search;
+  return { ok: true, url: clean, hostname: host };
+}
+
 // ── Proxy Config ──
 const PROXIES = [
   url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
@@ -442,10 +496,26 @@ function extractElements(html, baseUrl) {
     'title','template','slot','source','track','wbr','col','colgroup','data',
     'datalist','dialog','embed','map','area','object','param','picture','portal','base']);
 
+  // Security: strip all active/dangerous content
   doc.querySelectorAll('script,noscript').forEach(s => s.remove());
   doc.querySelectorAll('iframe').forEach(f => f.remove());
-  doc.querySelectorAll('object,embed').forEach(e => e.remove());
+  doc.querySelectorAll('object,embed,applet').forEach(e => e.remove());
   doc.querySelectorAll('meta[http-equiv]').forEach(m => m.remove());
+  doc.querySelectorAll('link[rel="import"],link[rel="preload"][as="script"]').forEach(l => l.remove());
+  doc.querySelectorAll('form').forEach(f => { f.removeAttribute('action'); f.removeAttribute('method'); });
+  // Strip all inline event handlers and dangerous attributes
+  doc.querySelectorAll('*').forEach(el => {
+    for (const attr of [...el.attributes]) {
+      const name = attr.name.toLowerCase();
+      if (name.startsWith('on') || name === 'formaction' || name === 'xlink:href') {
+        el.removeAttribute(attr.name);
+      }
+      if ((name === 'href' || name === 'src' || name === 'action') && /^\s*javascript:/i.test(attr.value)) {
+        el.removeAttribute(attr.name);
+      }
+      if (name === 'srcdoc') el.removeAttribute(attr.name);
+    }
+  });
 
   function walk(node) {
     if (node.nodeType !== 1) return;
@@ -675,17 +745,26 @@ function switchView(view) {
   $('btn-cards').classList.toggle('active', view === 'cards');
   $('btn-preview').classList.toggle('active', view === 'preview');
   $('btn-split').classList.toggle('active', view === 'split');
+  const btnStats = $('btn-stats');
+  if (btnStats) btnStats.classList.toggle('active', view === 'stats');
   $('btn-cards').setAttribute('aria-pressed', view === 'cards');
   $('btn-preview').setAttribute('aria-pressed', view === 'preview');
   $('btn-split').setAttribute('aria-pressed', view === 'split');
+  if (btnStats) btnStats.setAttribute('aria-pressed', view === 'stats');
 
   const cards = $('cards-view');
   const preview = $('preview-view');
+  const statsView = $('stats-view');
 
   cards.style.maxHeight = '';
   cards.querySelector('.army-left').style.maxHeight = '';
   cards.querySelector('.army-right').style.maxHeight = '';
   preview.classList.remove('split-mode');
+  if (statsView) statsView.classList.remove('visible');
+
+  // Hide battle log on stats view so it doesn't overlap
+  const battleLog = $('battle-log');
+  if (battleLog) battleLog.style.display = view === 'stats' ? 'none' : '';
 
   if (view === 'cards') {
     cards.classList.remove('hidden'); cards.style.display = 'flex';
@@ -693,6 +772,10 @@ function switchView(view) {
   } else if (view === 'preview') {
     cards.classList.add('hidden'); cards.style.display = 'none';
     preview.classList.add('visible'); preview.style.display = 'flex';
+  } else if (view === 'stats') {
+    cards.classList.add('hidden'); cards.style.display = 'none';
+    preview.classList.remove('visible'); preview.style.display = 'none';
+    if (statsView) { statsView.classList.add('visible'); renderStatsDashboard(); }
   } else {
     cards.classList.remove('hidden'); cards.style.display = 'flex';
     cards.style.maxHeight = '30vh';
@@ -988,16 +1071,14 @@ function applyMoraleBreak(deadUnit, army) {
 let battleState = null;
 
 async function startBattle() {
-  const url1 = $('url1').value.trim();
-  const url2 = $('url2').value.trim();
-  if (!url1 || !url2) return showError('Enter both URLs');
-  try {
-    const parsed1 = new URL(url1);
-    const parsed2 = new URL(url2);
-    if (!['http:', 'https:'].includes(parsed1.protocol) || !['http:', 'https:'].includes(parsed2.protocol)) {
-      return showError('Only http and https URLs are allowed');
-    }
-  } catch { return showError('Enter valid URLs (include https://)'); }
+  const raw1 = $('url1').value;
+  const raw2 = $('url2').value;
+  const v1 = sanitizeUrl(raw1);
+  const v2 = sanitizeUrl(raw2);
+  if (!v1.ok) return showError('Challenger 1: ' + v1.error);
+  if (!v2.ok) return showError('Challenger 2: ' + v2.error);
+  const url1 = v1.url;
+  const url2 = v2.url;
 
   showError('');
   $('fight-btn').disabled = true;
@@ -1565,8 +1646,8 @@ async function duel(unit1, unit2) {
     const didLevel = awardXP(unit1, xpGain);
     applyStreakVisuals(unit1);
     syncPreviewStreak(unit1, unit1.side);
-    let killMsg = `<span class="ko">&lt;${unit2.tag}&gt; [${unit2.role}] destroyed!</span>`;
-    if (unit1.streak >= 3) killMsg += ` <span class="win">&lt;${unit1.tag}&gt; ${unit1.streak}-KILL STREAK!</span>`;
+    let killMsg = `<span class="ko">&lt;${unit2.tag}&gt; [${unit2.role}] eliminated!</span>`;
+    if (unit1.streak >= 3) killMsg += ` <span class="win">&lt;${unit1.tag}&gt; ${unit1.streak}-WIN STREAK!</span>`;
     if (didLevel) killMsg += ` <span class="win">&lt;${unit1.tag}&gt; leveled up to Lv${unit1.level}!</span>`;
     logBattle(killMsg);
     applyDeathAnimation(card2, unit2);
@@ -1574,7 +1655,7 @@ async function duel(unit1, unit2) {
     applyMoraleBreak(unit2, unit2.side === 1 ? battleState.army1 : battleState.army2);
   } else {
     syncPreviewDamage(unit2, unit2.side);
-    if (card2) card2.title = `${unit2.role.toUpperCase()} Lv${unit2.level} | HP:${unit2.hp}/${unit2.maxHp} ATK:${unit2.atk} DEF:${unit2.def} | Kills:${unit2.kills}`;
+    if (card2) card2.title = `${unit2.role.toUpperCase()} Lv${unit2.level} | HP:${unit2.hp}/${unit2.maxHp} ATK:${unit2.atk} DEF:${unit2.def} | Defeats:${unit2.kills}`;
     // Last stand trigger after damage
     if (unit2.hp > 0 && (unit2.hp / unit2.maxHp) < 0.15 && card2 && !card2.classList.contains('last-stand')) {
       card2.classList.add('last-stand');
@@ -1590,8 +1671,8 @@ async function duel(unit1, unit2) {
     const didLevel = awardXP(unit2, xpGain);
     applyStreakVisuals(unit2);
     syncPreviewStreak(unit2, unit2.side);
-    let killMsg = `<span class="ko">&lt;${unit1.tag}&gt; [${unit1.role}] destroyed!</span>`;
-    if (unit2.streak >= 3) killMsg += ` <span class="win">&lt;${unit2.tag}&gt; ${unit2.streak}-KILL STREAK!</span>`;
+    let killMsg = `<span class="ko">&lt;${unit1.tag}&gt; [${unit1.role}] eliminated!</span>`;
+    if (unit2.streak >= 3) killMsg += ` <span class="win">&lt;${unit2.tag}&gt; ${unit2.streak}-WIN STREAK!</span>`;
     if (didLevel) killMsg += ` <span class="win">&lt;${unit2.tag}&gt; leveled up to Lv${unit2.level}!</span>`;
     logBattle(killMsg);
     applyDeathAnimation(card1, unit1);
@@ -1599,7 +1680,7 @@ async function duel(unit1, unit2) {
     applyMoraleBreak(unit1, unit1.side === 1 ? battleState.army1 : battleState.army2);
   } else {
     syncPreviewDamage(unit1, unit1.side);
-    if (card1) card1.title = `${unit1.role.toUpperCase()} Lv${unit1.level} | HP:${unit1.hp}/${unit1.maxHp} ATK:${unit1.atk} DEF:${unit1.def} | Kills:${unit1.kills}`;
+    if (card1) card1.title = `${unit1.role.toUpperCase()} Lv${unit1.level} | HP:${unit1.hp}/${unit1.maxHp} ATK:${unit1.atk} DEF:${unit1.def} | Defeats:${unit1.kills}`;
     // Last stand trigger after damage
     if (unit1.hp > 0 && (unit1.hp / unit1.maxHp) < 0.15 && card1 && !card1.classList.contains('last-stand')) {
       card1.classList.add('last-stand');
@@ -1625,7 +1706,7 @@ async function duel(unit1, unit2) {
       awardXP(unit2, 10);
       applyStreakVisuals(unit2);
       syncPreviewStreak(unit2, unit2.side);
-      logBattle(`<span class="ko">&lt;${unit1.tag}&gt; slain by counter!</span>`);
+      logBattle(`<span class="ko">&lt;${unit1.tag}&gt; defeated by counter!</span>`);
       applyDeathAnimation(card1, unit1);
       syncPreviewDefeatEnhanced(unit1, unit1.side);
       applyMoraleBreak(unit1, unit1.side === 1 ? battleState.army1 : battleState.army2);
@@ -1648,7 +1729,7 @@ async function duel(unit1, unit2) {
       awardXP(unit1, 10);
       applyStreakVisuals(unit1);
       syncPreviewStreak(unit1, unit1.side);
-      logBattle(`<span class="ko">&lt;${unit2.tag}&gt; slain by counter!</span>`);
+      logBattle(`<span class="ko">&lt;${unit2.tag}&gt; defeated by counter!</span>`);
       applyDeathAnimation(card2, unit2);
       syncPreviewDefeatEnhanced(unit2, unit2.side);
       applyMoraleBreak(unit2, unit2.side === 1 ? battleState.army1 : battleState.army2);
@@ -1679,6 +1760,107 @@ function logBattle(html) {
   log.scrollTop = log.scrollHeight;
 }
 
+// ── Stats Dashboard ──
+function renderStatsDashboard() {
+  const container = $('stats-view');
+  if (!container || !battleState) return;
+  const {army1, army2, url1, url2, totalRounds, a11y1, a11y2, synergies1, synergies2} = battleState;
+  const host1 = escHtml(new URL(url1).hostname);
+  const host2 = escHtml(new URL(url2).hostname);
+
+  const alive1 = army1.filter(u => u.alive);
+  const alive2 = army2.filter(u => u.alive);
+  const defeats1 = army1.reduce((s,u) => s + u.kills, 0);
+  const defeats2 = army2.reduce((s,u) => s + u.kills, 0);
+  const crits1 = army1.reduce((s,u) => s + u.crits, 0);
+  const crits2 = army2.reduce((s,u) => s + u.crits, 0);
+  const totalHp1 = army1.reduce((s,u) => s + u.maxHp, 0);
+  const totalHp2 = army2.reduce((s,u) => s + u.maxHp, 0);
+  const totalAtk1 = army1.reduce((s,u) => s + u.atk, 0);
+  const totalAtk2 = army2.reduce((s,u) => s + u.atk, 0);
+  const totalDef1 = army1.reduce((s,u) => s + u.def, 0);
+  const totalDef2 = army2.reduce((s,u) => s + u.def, 0);
+
+  function row(v1, label, v2) {
+    const w1 = typeof v1 === 'number' && typeof v2 === 'number';
+    const c1 = w1 && v1 > v2 ? ' winner' : '';
+    const c2 = w1 && v2 > v1 ? ' winner' : '';
+    return `<div class="stats-row"><span class="val-left${c1}">${v1}</span><span class="val-label">${label}</span><span class="val-right${c2}">${v2}</span></div>`;
+  }
+
+  // Role distribution
+  const allRoles = new Set([...army1.map(u=>u.role), ...army2.map(u=>u.role)]);
+  const sortedRoles = [...allRoles].sort();
+  let roleBars = '';
+  for (const role of sortedRoles) {
+    const c1 = army1.filter(u => u.role === role).length;
+    const c2 = army2.filter(u => u.role === role).length;
+    const max = Math.max(c1 + c2, 1);
+    const p1 = Math.round((c1 / max) * 100);
+    const p2 = Math.round((c2 / max) * 100);
+    roleBars += `<div class="stats-role-bar"><span class="role-name">${role}</span><div class="bar-track"><div class="bar-fill-left" style="width:${p1}%"></div><div class="bar-fill-right" style="width:${p2}%"></div></div><span class="bar-counts">${c1} / ${c2}</span></div>`;
+  }
+
+  // Top performers per side
+  function topPerformers(army, sideClass) {
+    const alive = army.filter(u => u.alive);
+    const topDefeats = [...army].sort((a,b)=>b.kills-a.kills)[0];
+    const highestLvl = [...army].sort((a,b)=>b.level-a.level)[0];
+    const topCrits = [...army].sort((a,b)=>b.crits-a.crits)[0];
+    const bestSurvivor = alive.length ? [...alive].sort((a,b)=>(b.hp/b.maxHp)-(a.hp/a.maxHp))[0] : null;
+    let html = '';
+    if (topDefeats) html += `<div class="stats-performer"><span class="perf-label">Most Defeats</span><span class="perf-val ${sideClass}">&lt;${topDefeats.tag}&gt; (${topDefeats.kills})</span></div>`;
+    if (highestLvl) html += `<div class="stats-performer"><span class="perf-label">Highest Level</span><span class="perf-val ${sideClass}">&lt;${highestLvl.tag}&gt; Lv${highestLvl.level}</span></div>`;
+    if (topCrits && topCrits.crits > 0) html += `<div class="stats-performer"><span class="perf-label">Most Crits</span><span class="perf-val ${sideClass}">&lt;${topCrits.tag}&gt; (${topCrits.crits})</span></div>`;
+    if (bestSurvivor) html += `<div class="stats-performer"><span class="perf-label">Best Survivor</span><span class="perf-val ${sideClass}">&lt;${bestSurvivor.tag}&gt; (${Math.round(bestSurvivor.hp/bestSurvivor.maxHp*100)}% HP)</span></div>`;
+    return html || '<div class="stats-performer"><span class="perf-label">No data</span></div>';
+  }
+
+  // A11y section
+  const allPractices = ['lang','headingHierarchy','altCoverage','skipNav','ariaLandmarks','viewport','semanticHTML'];
+  const practiceLabels = {lang:'lang attr',headingHierarchy:'Heading hierarchy',altCoverage:'Alt coverage',skipNav:'Skip nav',ariaLandmarks:'ARIA landmarks',viewport:'Meta viewport',semanticHTML:'Semantic HTML'};
+  function a11ySection(a11y, sideClass) {
+    const tierLine = a11y.tier ? `<div class="stats-performer"><span class="perf-label">Tier</span><span class="perf-val ${sideClass}">${a11y.tier.name} (+${Math.round(a11y.tier.statMult*100)}%)</span></div>` : `<div class="stats-performer"><span class="perf-label">Tier</span><span class="perf-val" style="color:var(--dim)">None</span></div>`;
+    let practices = '<div class="stats-a11y-list">';
+    for (const p of allPractices) {
+      const found = a11y.practices.includes(p);
+      practices += `<span class="practice ${found?'found':'missing'}">${found?'\u2713':'\u2717'} ${practiceLabels[p]}</span>`;
+    }
+    practices += '</div>';
+    return tierLine + practices;
+  }
+
+  // Synergies
+  function synergySection(synergies, sideClass) {
+    if (!synergies.length) return '<span style="color:var(--dim);font-size:0.65rem">None active</span>';
+    return synergies.map(s => `<span class="stats-synergy ${sideClass}">${s}</span>`).join('');
+  }
+
+  container.innerHTML = `<div class="stats-grid">
+    <section class="stats-section full-width"><h3>Battle Summary</h3>
+      ${row(host1, 'Site', host2)}
+      ${row(army1.length, 'Army Size', army2.length)}
+      ${row(alive1.length, 'Survivors', alive2.length)}
+      ${row(defeats1, 'Total Defeats', defeats2)}
+      ${row(crits1, 'Critical Hits', crits2)}
+      ${row(totalRounds, 'Rounds', totalRounds)}
+    </section>
+    <section class="stats-section full-width"><h3>Army Comparison</h3>
+      ${row(totalHp1, 'Total HP', totalHp2)}
+      ${row(totalAtk1, 'Total ATK', totalAtk2)}
+      ${row(totalDef1, 'Total DEF', totalDef2)}
+      ${row(army1.length, 'Unit Count', army2.length)}
+    </section>
+    <section class="stats-section full-width"><h3>Role Distribution</h3>${roleBars}</section>
+    <section class="stats-section"><h3>${host1} \u2014 Top Performers</h3>${topPerformers(army1, 'side1')}</section>
+    <section class="stats-section"><h3>${host2} \u2014 Top Performers</h3>${topPerformers(army2, 'side2')}</section>
+    <section class="stats-section"><h3>${host1} \u2014 Accessibility</h3>${a11ySection(a11y1, 'side1')}</section>
+    <section class="stats-section"><h3>${host2} \u2014 Accessibility</h3>${a11ySection(a11y2, 'side2')}</section>
+    <section class="stats-section"><h3>${host1} \u2014 Synergies</h3>${synergySection(synergies1, 'side1')}</section>
+    <section class="stats-section"><h3>${host2} \u2014 Synergies</h3>${synergySection(synergies2, 'side2')}</section>
+  </div>`;
+}
+
 // ── Aftermath ──
 async function showAftermath() {
   const {army1, army2, url1, url2, totalRounds} = battleState;
@@ -1691,6 +1873,7 @@ async function showAftermath() {
 
   $('round-info').textContent = 'Battle Complete';
   $('arena').classList.add('battle-over');
+  $('btn-stats').style.display = '';
 
   document.querySelector('.battlefield').classList.add('war-torn');
   const survivors = document.querySelectorAll('.el-card');
@@ -1725,7 +1908,7 @@ async function showAftermath() {
   addPreviewSmoke('smoke-overlay-2');
 
   await sleep(800);
-  if (currentView === 'cards') switchView('split');
+  switchView('stats');
 
   await sleep(600);
 
@@ -1742,9 +1925,9 @@ async function showAftermath() {
   $('victory-stats').innerHTML = `
     Rounds fought: ${totalRounds}<br>
     Survivors: ${winnerAlive.length} elements<br>
-    Total destroyed: ${army1.length + army2.length - winnerAlive.length - loserAlive.length} elements<br>
-    MVP: &lt;${mvp.tag}&gt; (${mvp.role}) \u2014 Lv${mvp.level}, ${mvp.kills} kills<br>
-    Top Killer: &lt;${topKiller.tag}&gt; \u2014 ${topKiller.kills} kills, ${topKiller.crits} crits<br>
+    Total eliminated: ${army1.length + army2.length - winnerAlive.length - loserAlive.length} elements<br>
+    MVP: &lt;${mvp.tag}&gt; (${mvp.role}) \u2014 Lv${mvp.level}, ${mvp.kills} defeats<br>
+    Top Performer: &lt;${topKiller.tag}&gt; \u2014 ${topKiller.kills} defeats, ${topKiller.crits} crits<br>
     Highest Level: &lt;${highestLvl.tag}&gt; \u2014 Lv${highestLvl.level}${a11yLine}
   `;
   $('victory-banner').classList.add('visible');

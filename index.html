@@ -2,138 +2,38 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Website Arena - Enter two website URLs and watch their HTML elements battle each other in an animated fight.">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#x2694;</text></svg>">
-<title>Website Arena</title>
-<link rel="stylesheet" href="styles.css">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<title>Notes Toward a Cosmology</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-<!-- Skip Navigation -->
-<a href="#main-content" class="sr-only sr-only-focusable">Skip to main content</a>
-
-<!-- ── Input Screen ── -->
-<main id="main-content">
-<div id="input-screen" role="region" aria-label="Battle setup">
-  <h1>Website Arena</h1>
-  <p class="subtitle">Two websites enter. One survives.</p>
-  <div class="url-inputs">
-    <div class="url-group">
-      <label for="url1">Challenger 1</label>
-      <input type="url" id="url1" placeholder="https://example.com" value="" autocomplete="url">
-    </div>
-    <span class="vs-text" aria-hidden="true">VS</span>
-    <div class="url-group">
-      <label for="url2">Challenger 2</label>
-      <input type="url" id="url2" placeholder="https://example.org" value="" autocomplete="url">
-    </div>
+<header class="top">
+  <div class="row">
+    <a href="/" class="brand">notes toward a cosmology</a>
+    <nav class="primary"></nav>
   </div>
-  <button id="fight-btn" onclick="startBattle()">Fight!</button>
-  <p class="error-msg" id="error-msg" role="alert" aria-live="assertive"></p>
-  <p class="proxy-note">
-    Sites are fetched via a CORS proxy. If a site is blocked or unavailable,
-    the Wayback Machine archive is used as a fallback.
-  </p>
-  <p class="proxy-note" style="margin-top:0.8rem"><a href="about.html" style="color:var(--gold);text-decoration:underline">How does this work?</a></p>
-</div>
+</header>
+<main>
+  <h1>Notes Toward a Cosmology</h1>
+  <p class="one-liner"><em>A field guide to the apparatus. Working draft — first two chapters.</em></p>
 
-<!-- ── Loading Screen ── -->
-<div id="loading-screen" role="status" aria-live="polite">
-  <div class="loader" aria-hidden="true"></div>
-  <p id="loading-text">Fetching combatants...</p>
-</div>
+  <h2>Contents</h2>
+  <ol class="reading-path">
+    <li>
+      <strong><a href="preface.html">Preface — "It Happened on a Starbucks Patio"</a></strong>
+      <span class="path-blurb">A man at a Starbucks patio. The author has not been able to stop thinking about him.</span>
+    </li>
+    <li>
+      <strong><a href="we-are-the-substrate.html">1. We Are the Substrate</a></strong>
+      <span class="path-blurb">The claim said plainly. The substrate-logic argument in three points. The Apkallu emerging from the deep waters to teach civilization.</span>
+    </li>
+  </ol>
 
-<!-- ── Arena ── -->
-<div id="arena" role="region" aria-label="Battle arena">
-  <div class="arena-header">
-    <div class="site-name" id="site1-name"></div>
-    <div class="round-info" id="round-info" aria-live="polite">Scanning...</div>
-    <div class="site-name" id="site2-name"></div>
-  </div>
-  <div class="hp-bars" role="group" aria-label="Army health">
-    <div class="hp-bar-wrap">
-      <div class="hp-bar-label">
-        <span id="hp1-label">ARMY HP</span>
-        <span class="a11y-badge" id="hp1-badge"></span>
-        <span class="hp-val" id="hp1-val" aria-live="polite">100%</span>
-      </div>
-      <div class="hp-bar" role="progressbar" aria-labelledby="hp1-label" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"><div class="hp-bar-fill" id="hp1-bar" style="width:100%"></div></div>
-    </div>
-    <div class="hp-bar-wrap">
-      <div class="hp-bar-label">
-        <span id="hp2-label">ARMY HP</span>
-        <span class="a11y-badge" id="hp2-badge"></span>
-        <span class="hp-val" id="hp2-val" aria-live="polite">100%</span>
-      </div>
-      <div class="hp-bar" role="progressbar" aria-labelledby="hp2-label" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"><div class="hp-bar-fill" id="hp2-bar" style="width:100%"></div></div>
-    </div>
-  </div>
-  <nav class="view-toggle" aria-label="View options">
-    <button class="active" onclick="switchView('cards')" id="btn-cards" aria-pressed="true">Battle Cards</button>
-    <button onclick="switchView('preview')" id="btn-preview" aria-pressed="false">Live Preview</button>
-    <button onclick="switchView('split')" id="btn-split" aria-pressed="false">Split View</button>
-    <button onclick="switchView('stats')" id="btn-stats" aria-pressed="false" style="display:none">Stats</button>
-  </nav>
+  <hr>
 
-  <!-- Cards View -->
-  <div class="battlefield" id="cards-view" role="region" aria-label="Battle cards">
-    <div class="army army-left" id="army-left" aria-label="Challenger 1 army">
-      <div class="expand-hint" onclick="expandPanel('cards-left')" role="button" tabindex="0" aria-label="Expand Challenger 1 cards" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();expandPanel('cards-left')}"><span class="expand-icon">Click to expand</span></div>
-    </div>
-    <div class="battlefield-divider" aria-hidden="true"></div>
-    <div class="collision-layer" id="collision-layer" aria-hidden="true"></div>
-    <div class="army army-right" id="army-right" aria-label="Challenger 2 army">
-      <div class="expand-hint" onclick="expandPanel('cards-right')" role="button" tabindex="0" aria-label="Expand Challenger 2 cards" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();expandPanel('cards-right')}"><span class="expand-icon">Click to expand</span></div>
-    </div>
-  </div>
+  <p class="note"><em>What this is:</em> a working draft of the opening of a longer book. The full book has a literary companion called <em>Maintenance Window</em>. Both are works in progress. Read slowly.</p>
 
-  <!-- Preview View -->
-  <div class="preview-panel" id="preview-view" role="region" aria-label="Website previews">
-    <div class="preview-side" id="preview-side-1">
-      <div class="preview-label" id="preview-label-1">Challenger 1</div>
-      <!-- sandbox="allow-same-origin" without allow-scripts: safe for reading DOM, scripts cannot execute -->
-      <iframe id="preview-frame-1" sandbox="allow-same-origin" title="Challenger 1 website preview"></iframe>
-      <div class="vignette" aria-hidden="true"></div>
-      <div class="smoke-overlay" id="smoke-overlay-1" aria-hidden="true"></div>
-      <div class="expand-hint" onclick="expandPanel('preview-1')" role="button" tabindex="0" aria-label="Expand Challenger 1 preview" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();expandPanel('preview-1')}"><span class="expand-icon">Click to expand</span></div>
-    </div>
-    <div class="preview-divider" aria-hidden="true"></div>
-    <div class="preview-side" id="preview-side-2">
-      <div class="preview-label" id="preview-label-2">Challenger 2</div>
-      <!-- sandbox="allow-same-origin" without allow-scripts: safe for reading DOM, scripts cannot execute -->
-      <iframe id="preview-frame-2" sandbox="allow-same-origin" title="Challenger 2 website preview"></iframe>
-      <div class="vignette" aria-hidden="true"></div>
-      <div class="smoke-overlay" id="smoke-overlay-2" aria-hidden="true"></div>
-      <div class="expand-hint" onclick="expandPanel('preview-2')" role="button" tabindex="0" aria-label="Expand Challenger 2 preview" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();expandPanel('preview-2')}"><span class="expand-icon">Click to expand</span></div>
-    </div>
-  </div>
-
-  <!-- Stats View -->
-  <div class="stats-dashboard" id="stats-view" role="region" aria-label="Battle statistics"></div>
-</div>
 </main>
-
-<!-- ── Fullscreen Viewer ── -->
-<div id="fullscreen-viewer" role="dialog" aria-modal="true" aria-label="Fullscreen view">
-  <div class="fs-header">
-    <span class="fs-title" id="fs-title"></span>
-    <button class="fs-close" onclick="closeFullscreen()" aria-label="Close fullscreen view">ESC &times; Close</button>
-  </div>
-  <div class="fs-body" id="fs-body"></div>
-</div>
-
-<!-- ── Battle Log ── -->
-<div id="battle-log" role="log" aria-live="off" aria-label="Battle log"></div>
-
-<!-- ── Victory Banner ── -->
-<div id="victory-banner" role="status" aria-labelledby="victory-title">
-  <h2 id="victory-title">Victory!</h2>
-  <p class="winner-url" id="winner-url"></p>
-  <div class="stats" id="victory-stats"></div>
-  <button onclick="location.reload()">Battle Again</button>
-</div>
-
-<script src="arena.js"></script>
 </body>
 </html>

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<title>The constellation — I'm Not Like You Guys</title>
+<link rel="stylesheet" href="/style.css">
+<link rel="stylesheet" href="/static/constellation.css">
+</head>
+<body>
+<header class="top">
+  <div class="row">
+    <a href="/" class="brand">i'm not like you guys</a>
+    <nav class="primary">
+      <a href="/explore.html">explore</a>
+      <a href="/constellation.html">constellation</a>
+      <a href="/creepy.html">creepy index</a>
+    </nav>
+  </div>
+</header>
+<main>
+
+<section class="cn-titlebar">
+    <h1 class="cn-title">the constellation</h1>
+    <p class="cn-meta">Every place, figure, case, and phenomenon as one graph. <strong>Drag</strong> to pan · <strong>scroll</strong> to zoom · <strong>click</strong> any node to enter · <strong>hover</strong> to see connections.</p>
+</section>
+
+<div class="cn-stage">
+    <div class="cn-graph" id="cn-graph"></div>
+
+    <div class="cn-controls">
+        <div class="cn-controls-group">
+            <label class="cn-controls-label">FILTER BY TYPE</label>
+            <label class="cn-check"><input type="checkbox" data-type="figure" checked> figures</label>
+            <label class="cn-check"><input type="checkbox" data-type="place" checked> places</label>
+            <label class="cn-check"><input type="checkbox" data-type="case" checked> cases</label>
+            <label class="cn-check"><input type="checkbox" data-type="phenomenon" checked> phenomena</label>
+        </div>
+        <div class="cn-controls-group">
+            <label class="cn-controls-label">SEARCH</label>
+            <input type="text" id="cn-search" placeholder="name…" autocomplete="off">
+        </div>
+        <div class="cn-controls-group">
+            <label class="cn-controls-label">VIEW</label>
+            <div class="cn-zoom-row">
+                <button type="button" class="cn-btn" id="cn-zoom-in">+</button>
+                <button type="button" class="cn-btn" id="cn-zoom-out">−</button>
+                <button type="button" class="cn-btn cn-btn-wide" id="cn-zoom-fit">FIT</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="cn-tip" id="cn-tip" aria-hidden="true">
+        <div class="cn-tip-label" id="cn-tip-label"></div>
+        <div class="cn-tip-type"  id="cn-tip-type"></div>
+    </div>
+
+    <div class="cn-legend" id="cn-legend">
+        <div class="cn-legend-label">LEGEND</div>
+        <div class="cn-legend-row"><span class="cn-leg-shape" data-shape="circle"></span> figure</div>
+        <div class="cn-legend-row"><span class="cn-leg-shape" data-shape="square"></span> place</div>
+        <div class="cn-legend-row"><span class="cn-leg-shape" data-shape="hex"></span> case</div>
+        <div class="cn-legend-row"><span class="cn-leg-shape" data-shape="triangle"></span> phenomenon</div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/cytoscape@3.30.2/dist/cytoscape.min.js"></script>
+<script src="/static/constellation.js" defer></script>
+
+</main>
+</body>
+</html>

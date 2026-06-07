@@ -1,0 +1,59 @@
+/* explore-static.css — public-site styles for explore.html.
+ * Trimmed from server/static/explore.css. Brutalist black-on-white. */
+
+main { max-width: 1100px; }
+
+/* ── HERO ── */
+.ex-hero { display: grid; grid-template-columns: 1fr; gap: 16px; padding: 18px 0 24px; border-bottom: 2px solid #000; margin-bottom: 28px; }
+.ex-hero-title { font-family: ui-monospace, Menlo, monospace; font-size: 38px; font-weight: 800; line-height: 1.02; letter-spacing: -1.5px; margin: 0 0 12px; border: 0; padding: 0; }
+.ex-hero-sub { font-family: "Times New Roman", Times, serif; font-size: 17px; line-height: 1.5; margin: 0 0 12px; color: #222; }
+.ex-hero-meta { font-family: ui-monospace, Menlo, monospace; font-size: 12px; color: #555; }
+.ex-hero-meta a { color: #000; text-decoration: underline; }
+
+/* ── SECTION LABELS ── */
+.ex-section { margin: 36px 0; }
+.ex-section-label { font-family: ui-monospace, Menlo, monospace; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; padding-top: 12px; border-top: 2px solid #000; margin-bottom: 8px; }
+.ex-section-blurb { font-family: "Times New Roman", Times, serif; font-size: 15px; line-height: 1.55; margin-bottom: 14px; color: #333; }
+
+/* ── WHERE TO BEGIN ── */
+.ex-begin { margin: 32px 0 40px; }
+.ex-begin-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 14px; }
+.ex-begin-card { display: block; border: 1px solid #000; background: #fff; color: #000; text-decoration: none; }
+.ex-begin-card:hover { background: #fffacd; }
+.ex-card-visual { border-bottom: 1px solid #000; aspect-ratio: 4 / 3; overflow: hidden; }
+.ex-card-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ex-card-graphmini svg { width: 100%; height: 100%; }
+.ex-card-body { padding: 12px 14px 14px; }
+.ex-card-kicker { font-family: ui-monospace, Menlo, monospace; font-size: 10px; font-weight: 700; letter-spacing: 1px; color: #555; margin-bottom: 4px; }
+.ex-card-title { font-family: ui-monospace, Menlo, monospace; font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+.ex-card-blurb { font-family: "Times New Roman", Times, serif; font-size: 14px; line-height: 1.45; margin-bottom: 10px; color: #333; }
+.ex-card-cta { font-family: ui-monospace, Menlo, monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; }
+
+/* ── PLACES GRID ── */
+.ex-places-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; border-top: 1px solid #000; border-left: 1px solid #000; }
+.ex-place-card { display: block; border-right: 1px solid #000; border-bottom: 1px solid #000; background: #fff; color: #000; text-decoration: none; overflow: hidden; }
+.ex-place-card:hover { background: #fffacd; }
+.ex-place-img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-bottom: 1px solid #000; }
+.ex-place-img-blank { background: #fff; aspect-ratio: 4 / 3; border-bottom: 1px solid #000; }
+.ex-place-body { padding: 10px 12px 14px; }
+.ex-place-name { font-family: ui-monospace, Menlo, monospace; font-size: 14px; font-weight: 700; margin-bottom: 4px; color: #000; }
+.ex-place-meta { font-family: ui-monospace, Menlo, monospace; font-size: 10.5px; color: #555; letter-spacing: 0.3px; margin-bottom: 2px; }
+.ex-place-region { font-family: "Times New Roman", Times, serif; font-size: 13.5px; color: #333; line-height: 1.45; }
+
+@media (max-width: 720px) {
+  .ex-places-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 480px) {
+  .ex-places-grid { grid-template-columns: 1fr; }
+}
+
+/* ── DOCUMENTED RECORD ── */
+.ex-record-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-top: 14px; }
+.ex-record-bucket { border: 1px solid #000; padding: 12px 14px 14px; background: #fff; }
+.ex-record-cat { margin: 0 0 4px; font-family: ui-monospace, Menlo, monospace; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: #000; border: 0; padding: 0; }
+.ex-record-count { font-weight: 400; color: #777; }
+.ex-record-blurb { margin: 0 0 10px; font-family: ui-monospace, Menlo, monospace; font-size: 11px; color: #666; }
+.ex-record-list { list-style: none; padding: 0; margin: 0; max-height: 260px; overflow-y: auto; border-top: 1px dashed #aaa; padding-top: 6px; }
+.ex-record-list li { margin: 0 0 1px; font-family: "Times New Roman", Times, serif; font-size: 14px; line-height: 1.35; }
+.ex-record-list li a { display: block; padding: 3px 6px; color: #000; text-decoration: none; border-left: 2px solid transparent; }
+.ex-record-list li a:hover { background: #fffacd; border-left-color: #000; }

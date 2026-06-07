@@ -1,0 +1,244 @@
+/* constellation.css — full-bleed Cytoscape stage with overlay controls.
+ *
+ * The graph canvas takes the rest of the viewport. Controls float as a
+ * brutalist overlay panel in the upper-left; legend in the lower-right; node
+ * tooltip follows the cursor. No colors except the standard #fffacd hover
+ * yellow (inherited convention from the rest of the site).
+ */
+
+/* The constellation page wants a wider canvas than the standard 760px column.
+ * Override `main` only here. */
+main { max-width: 100%; padding: 16px 18px 30px; }
+
+/* ─────────────── title bar ─────────────── */
+.cn-titlebar {
+    padding-bottom: 10px;
+    border-bottom: 1px solid #000;
+    margin-bottom: 10px;
+}
+.cn-title {
+    font-family: ui-monospace, Menlo, monospace;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    margin: 0;
+    color: #000;
+    border: 0;
+    padding: 0;
+    /* base h1 picks up border-top from margin-bottom, override here. */
+}
+.cn-meta {
+    font-family: ui-monospace, Menlo, monospace;
+    font-size: 11.5px;
+    color: #555;
+    margin: 6px 0 0;
+    letter-spacing: 0.2px;
+}
+.cn-meta strong { color: #000; font-weight: 700; }
+
+/* ─────────────── stage ─────────────── */
+.cn-stage {
+    position: relative;
+    height: calc(100vh - 200px);
+    min-height: 520px;
+    border: 1px solid #000;
+    background: #fff;
+}
+
+.cn-graph {
+    position: absolute;
+    inset: 0;
+    background: #fff;
+}
+
+/* ─────────────── controls overlay ─────────────── */
+.cn-controls {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 10;
+    background: #fff;
+    border: 1px solid #000;
+    padding: 10px 12px;
+    width: 240px;
+    font-family: ui-monospace, Menlo, monospace;
+    font-size: 12px;
+}
+.cn-controls-group {
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed #000;
+}
+.cn-controls-group:last-child {
+    border-bottom: 0;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+.cn-controls-label {
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.7px;
+    color: #555;
+    margin-bottom: 6px;
+}
+.cn-check {
+    display: block;
+    font-size: 12px;
+    margin-bottom: 3px;
+    cursor: pointer;
+    user-select: none;
+}
+.cn-check input { vertical-align: -1px; margin-right: 6px; }
+
+#cn-search {
+    width: 100%;
+    padding: 5px 8px;
+    border: 1px solid #000;
+    background: #fff;
+    color: #000;
+    font-family: ui-monospace, Menlo, monospace;
+    font-size: 12px;
+    -webkit-appearance: none;
+}
+#cn-search:focus { outline: 2px solid #000; outline-offset: -2px; }
+
+#cn-layout {
+    width: 100%;
+    padding: 5px 8px;
+    border: 1px solid #000;
+    background: #fff;
+    color: #000;
+    font-family: ui-monospace, Menlo, monospace;
+    font-size: 12px;
+}
+
+.cn-zoom-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+.cn-btn {
+    flex: 0 0 32px;
+    height: 28px;
+    border: 1px solid #000;
+    background: #fff;
+    color: #000;
+    font-family: ui-monospace, Menlo, monospace;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+}
+.cn-btn:hover { background: #fffacd; }
+.cn-btn-wide { flex: 1; padding: 0 8px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px; }
+
+/* ─────────────── tooltip ─────────────── */
+.cn-tip {
+    position: absolute;
+    z-index: 20;
+    pointer-events: none;
+    background: #fff;
+    border: 1px solid #000;
+    padding: 6px 9px;
+    font-family: ui-monospace, Menlo, monospace;
+    font-size: 12px;
+    color: #000;
+    max-width: 280px;
+    visibility: hidden;
+    /* Defaults so the first-hover tooltip doesn't flash at the stage origin
+       before mousemove updates the position. */
+    left: -9999px;
+    top: -9999px;
+}
+.cn-tip-label { font-weight: 700; }
+.cn-tip-type {
+    margin-top: 2px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #555;
+}
+
+/* ─────────────── legend ─────────────── */
+.cn-legend {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    z-index: 10;
+    background: #fff;
+    border: 1px solid #000;
+    padding: 8px 10px;
+    font-family: ui-monospace, Menlo, monospace;
+    font-size: 11px;
+    min-width: 170px;
+}
+.cn-legend-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.7px;
+    color: #555;
+    margin-bottom: 6px;
+}
+.cn-legend-row {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 3px;
+}
+.cn-leg-shape {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border: 1px solid #000;
+    background: #fff;
+}
+.cn-leg-shape[data-shape="circle"]  { border-radius: 50%; }
+.cn-leg-shape[data-shape="square"]  { /* default */ }
+.cn-leg-shape[data-shape="diamond"] {
+    transform: rotate(45deg);
+    width: 9px;
+    height: 9px;
+}
+.cn-leg-shape[data-shape="hex"]     {
+    /* Approximate hex shape via clip-path; brutalist enough. */
+    clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%);
+    border: 0;
+    background: #000;
+    width: 14px;
+    height: 12px;
+    position: relative;
+}
+.cn-leg-shape[data-shape="triangle"] {
+    /* Triangle for ongoing phenomena (Mothman, foo fighters, cattle
+       mutilations). Same brutalist filled-black treatment as hex. */
+    clip-path: polygon(50% 0, 100% 100%, 0 100%);
+    border: 0;
+    background: #000;
+    width: 14px;
+    height: 12px;
+}
+
+/* ─────────────── mobile ─────────────── */
+@media (max-width: 640px) {
+    main { padding: 12px 10px 24px; }
+    .cn-stage {
+        height: calc(100vh - 240px);
+        min-height: 440px;
+    }
+    .cn-controls {
+        position: static;
+        width: auto;
+        margin-bottom: 8px;
+    }
+    .cn-controls-group {
+        display: inline-block;
+        vertical-align: top;
+        width: 48%;
+        margin-right: 1%;
+        border-bottom: 0;
+        padding-bottom: 0;
+        margin-bottom: 8px;
+    }
+    .cn-stage { height: 70vh; min-height: 400px; }
+    .cn-legend { font-size: 10px; min-width: 150px; }
+}

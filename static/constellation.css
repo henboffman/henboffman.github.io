@@ -217,6 +217,18 @@ main { max-width: 100%; padding: 16px 18px 30px; }
     width: 14px;
     height: 12px;
 }
+.cn-leg-shape[data-shape="star"] {
+    /* Five-pointed star for interpretive theories (ETH, IDH, psychosocial,
+       ancient-astronaut, etc.). Theories are the connective tissue layer:
+       they cite figures and cases without being either. */
+    clip-path: polygon(
+        50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%,
+        50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+    border: 0;
+    background: #000;
+    width: 14px;
+    height: 14px;
+}
 
 /* ─────────────── mobile ─────────────── */
 @media (max-width: 640px) {

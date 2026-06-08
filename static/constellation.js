@@ -37,6 +37,10 @@
         // fighters, cattle mutilations, crop circles…) get a distinct
         // triangle shape so they don't visually collapse into figures.
         phenomenon: 'triangle',
+        // 2026-06 theory overlay — interpretive frames (ETH, IDH,
+        // psychosocial, ancient-astronaut, etc.) get the star shape so
+        // their cluster role is visually unambiguous on the graph.
+        theory:     'star',
     };
 
     function fetchGraph() {

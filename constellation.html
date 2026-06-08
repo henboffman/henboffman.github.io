@@ -42,11 +42,21 @@
             <input type="text" id="cn-search" placeholder="name…" autocomplete="off">
         </div>
         <div class="cn-controls-group">
+            <label class="cn-controls-label" for="cn-layout">LAYOUT</label>
+            <select id="cn-layout">
+                <option value="cose"     selected>force-directed</option>
+                <option value="circle"            >circular</option>
+                <option value="concentric"        >concentric</option>
+                <option value="grid"              >grid</option>
+            </select>
+        </div>
+
+        <div class="cn-controls-group">
             <label class="cn-controls-label">VIEW</label>
             <div class="cn-zoom-row">
                 <button type="button" class="cn-btn" id="cn-zoom-in">+</button>
                 <button type="button" class="cn-btn" id="cn-zoom-out">−</button>
-                <button type="button" class="cn-btn cn-btn-wide" id="cn-zoom-fit">FIT</button>
+                <button type="button" class="cn-btn cn-btn-wide" id="cn-reset">reset</button>
             </div>
         </div>
     </div>

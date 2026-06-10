@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<title>Compare — I'm Not Like You</title>
+<link rel="stylesheet" href="/style.css">
+<style>
+  .cx-page { max-width: 720px; margin: 24px auto 60px; padding: 0 20px; }
+  .cx-page h1 { font-family: ui-monospace, Menlo, monospace; }
+  .cx-body { font-family: "Times New Roman", Times, serif; font-size: 17px;
+             line-height: 1.7; }
+  .cx-body h2 { margin-top: 30px; }
+  .cx-body li { margin-bottom: 8px; }
+  .cx-nav { font-family: ui-monospace, Menlo, monospace; font-size: 12px;
+            display: flex; justify-content: space-between; gap: 12px;
+            border-top: 1px solid #000; margin-top: 36px; padding-top: 12px; }
+  .cx-toc { list-style: none; padding: 0; }
+  .cx-toc li { border: 1px solid #000; padding: 12px 16px; margin-bottom: 10px; }
+  .cx-toc .t { font: 700 16px "Times New Roman", serif; }
+  .cx-toc .t a { text-decoration: none; }
+  .cx-toc .t a:hover { background: #fffacd; }
+  .cx-toc .b { font: 13.5px/1.55 "Times New Roman", serif; color: #333;
+               margin-top: 3px; }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="row">
+    <a href="/" class="brand">i'm not like you</a>
+    <nav class="primary">
+      <a href="/codex-v2.html">monograph</a>
+      <a href="/constellation.html">constellation</a>
+      <a href="/explore.html">index</a>
+      <a href="/deep-dives.html">deep dives</a>
+      <a href="/skinwalker.html">skinwalker</a>
+      <a href="/compare.html">compare</a>
+      <a href="/creepy.html">creepy</a>
+      <a href="/theories.html">theories</a>
+      <a href="/observatory.html">observatory</a>
+      <a href="/watching.html">watching</a>
+    </nav>
+  </div>
+</header>
+<main>
+
+<div class="cx-page" style="max-width:860px;">
+  <h1>Compare</h1>
+  <p class="one-liner"><em>Two cases from the documented record, side by
+  side, with a scored structural-similarity breakdown: shared theory
+  anchors weigh ×3, classification overlap ×2, category and decade ×1.
+  Shared values highlight green.</em></p>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0;">
+    <select id="cp-a" style="font:13px ui-monospace,Menlo,monospace;border:1px solid #000;padding:6px;"></select>
+    <select id="cp-b" style="font:13px ui-monospace,Menlo,monospace;border:1px solid #000;padding:6px;"></select>
+  </div>
+  <div id="cp-out">loading…</div>
+</div>
+<style>
+  .cp-table { width:100%; border-collapse:collapse; }
+  .cp-table th, .cp-table td { border:1px solid #000; padding:9px 12px; vertical-align:top; text-align:left; }
+  .cp-table th { font:700 10.5px ui-monospace,Menlo,monospace; text-transform:uppercase; background:#f0f0f0; width:130px; }
+  .cp-table td { font:14px/1.55 "Times New Roman",serif; width:50%; }
+  .cp-table td.shared { background:#e8fff5; }
+  .cp-score { border:2px solid #000; background:#fffacd; padding:12px 16px; margin-bottom:16px; font:13px ui-monospace,Menlo,monospace; }
+  .cp-score .n { font-size:22px; font-weight:700; }
+  .mono { font:11px ui-monospace,Menlo,monospace; }
+</style>
+<script>
+const esc = s => String(s ?? '').replace(/[&<>"']/g,
+  c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const $ = s => document.querySelector(s);
+let CASES = [];
+
+function jaccard(a, b) {
+  const A = new Set(a), B = new Set(b);
+  const inter = [...A].filter(x => B.has(x)).length;
+  const uni = new Set([...A, ...B]).size;
+  return uni ? inter / uni : 0;
+}
+function splitCls(c) { return String(c || '').split(',').map(s => s.trim()).filter(Boolean); }
+function score(a, b) {
+  const theory = jaccard(a.theories, b.theories) * 3;
+  const cls = jaccard(splitCls(a.classification), splitCls(b.classification)) * 2;
+  const cat = (a.category && a.category === b.category) ? 1 : 0;
+  let dec = 0;
+  if (a.year && b.year) {
+    const da = Math.floor(a.year / 10), db = Math.floor(b.year / 10);
+    dec = da === db ? 1 : (Math.abs(da - db) === 1 ? 0.5 : 0);
+  }
+  return {total: +(theory + cls + cat + dec).toFixed(3),
+          breakdown: {theories: +theory.toFixed(2), classification: +cls.toFixed(2),
+                      category: cat, decade: dec}};
+}
+function render() {
+  const a = CASES.find(c => c.key === $('#cp-a').value);
+  const b = CASES.find(c => c.key === $('#cp-b').value);
+  if (!a || !b || a.key === b.key) { $('#cp-out').innerHTML = '<em>pick two different cases.</em>'; return; }
+  const s = score(a, b);
+  const shared = a.theories.filter(t => b.theories.includes(t));
+  const tCell = c => c.theories.length
+    ? c.theories.map(t => `<span class="mono" style="${shared.includes(t) ? 'font-weight:700;' : ''}"><a href="/t/${esc(t)}.html">${esc(t)}</a></span>`).join('<br>')
+    : '<span class="mono" style="color:#999;">no theory anchors</span>';
+  const bd = Object.entries(s.breakdown).map(([k, v]) => `${esc(k)} ${v}`).join(' · ');
+  const row = (label, fa, fb, cls = '') =>
+    `<tr><th>${label}</th><td class="${cls}">${fa}</td><td class="${cls}">${fb}</td></tr>`;
+  $('#cp-out').innerHTML = `
+    <div class="cp-score">resonance <span class="n">${s.total}</span> &nbsp; ${bd}${shared.length ? ' · shared anchors: ' + shared.map(esc).join(', ') : ''}</div>
+    <table class="cp-table">
+      ${row('case', `<b><a href="/g/${esc(a.key)}.html">${esc(a.display)}</a></b>`,
+                    `<b><a href="/g/${esc(b.key)}.html">${esc(b.display)}</a></b>`)}
+      ${row('classification', `<span class="mono">${esc(a.classification)}</span>`, `<span class="mono">${esc(b.classification)}</span>`, a.classification === b.classification ? 'shared' : '')}
+      ${row('status', `<span class="mono">${esc(a.corpus_status)}</span>`, `<span class="mono">${esc(b.corpus_status)}</span>`, a.corpus_status === b.corpus_status ? 'shared' : '')}
+      ${row('category', `<span class="mono">${esc(a.category)}</span>`, `<span class="mono">${esc(b.category)}</span>`, a.category === b.category ? 'shared' : '')}
+      ${row('the case', esc(a.one_liner), esc(b.one_liner))}
+      ${row('theory anchors', tCell(a), tCell(b))}
+      ${row('status note', esc(a.corpus_status_note), esc(b.corpus_status_note))}
+    </table>`;
+}
+async function init() {
+  CASES = (await (await fetch('/compare-data.json')).json()).cases;
+  CASES.sort((x, y) => (x.year || 0) - (y.year || 0));
+  const opts = CASES.map(c => `<option value="${esc(c.key)}">${esc(c.display)}</option>`).join('');
+  $('#cp-a').innerHTML = opts; $('#cp-b').innerHTML = opts;
+  $('#cp-a').value = 'levelland-1957'; $('#cp-b').value = 'tehran-f4-1976';
+  $('#cp-a').addEventListener('change', render);
+  $('#cp-b').addEventListener('change', render);
+  render();
+}
+init();
+</script>
+
+</main>
+</body>
+</html>

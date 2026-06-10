@@ -80,6 +80,9 @@
                     diameter: diameter,
                     shape: SHAPE[n.type] || 'ellipse',
                     showLabel: showLabel ? 'yes' : 'no',
+                    // Register membrane I5: window (fiction-layer) nodes
+                    // render dashed so the mixed graph stays honest.
+                    register: n.register || 'record',
                 },
             });
         });
@@ -123,6 +126,15 @@
                     'text-background-opacity': 0.85,
                     'text-background-padding': 2,
                     'min-zoomed-font-size': 6,
+                },
+            },
+            // Register membrane I5 (docs/REGISTER-MEMBRANE.md): fiction-layer
+            // nodes are dashed; the record stays solid.
+            {
+                selector: 'node[register = "window"]',
+                style: {
+                    'border-style': 'dashed',
+                    'background-color': '#f4f4f4',
                 },
             },
             // Labels are visible for the top-quartile by default.
